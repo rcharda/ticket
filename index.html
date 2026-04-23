@@ -1,1773 +1,1984 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Leaders Afro Chill Village — Billetterie Officielle</title>
-  <meta name="description" content="Achetez vos tickets officiels pour Leaders Afro Chill Village. Vivez une expérience unique.">
-  
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
-  
-  <!-- Libraries -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script src="https://cdn.kkiapay.me/k.js" defer></script>
-
-  <style>
-    :root {
-      --gold: #C9A84C;
-      --gold-bright: #F0CB6A;
-      --gold-dark: #8B6914;
-      --black: #060606;
-      --surface: #0E0E0E;
-      --surface-2: #161616;
-      --surface-3: #1E1E1E;
-      --border: rgba(201, 168, 76, 0.18);
-      --border-bright: rgba(201, 168, 76, 0.5);
-      --text: #F5EDD6;
-      --text-muted: rgba(245, 237, 214, 0.5);
-      --text-dim: rgba(245, 237, 214, 0.25);
-      --vvip: #FFD700;
-      --vip: #C9A84C;
-      --standard: #9B7B3A;
-      --early: #4A90D9;
-      --red: #E05252;
-      --green: #52C97A;
-      --font-display: 'Cormorant Garamond', serif;
-      --font-body: 'Syne', sans-serif;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: var(--font-body);
-      background-color: var(--black);
-      color: var(--text);
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
-
-    /* ───── PATTERNS & BACKGROUNDS ───── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(201,168,76,0.08) 0%, transparent 70%),
-        url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23C9A84C' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .noise-overlay {
-      position: fixed;
-      inset: 0;
-      opacity: 0.025;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    /* ───── NAV ───── */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      padding: 1.2rem 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: rgba(6,6,6,0.85);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-
-    .nav-logo {
-      font-family: var(--font-display);
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--gold);
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    .nav-badge {
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gold);
-      border: 1px solid var(--border-bright);
-      padding: 0.3rem 0.8rem;
-      border-radius: 2px;
-    }
-
-    /* ───── HERO ───── */
-    .hero {
-      position: relative;
-      z-index: 1;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 8rem 2rem 4rem;
-      overflow: hidden;
-    }
-
-    .hero-decoration {
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
-    }
-
-    .hero-circle {
-      position: absolute;
-      border-radius: 50%;
-      border: 1px solid var(--border);
-    }
-
-    .hero-circle-1 {
-      width: 600px; height: 600px;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      animation: pulse-ring 6s ease-in-out infinite;
-    }
-
-    .hero-circle-2 {
-      width: 900px; height: 900px;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      animation: pulse-ring 6s ease-in-out infinite 1s;
-    }
-
-    .hero-circle-3 {
-      width: 1200px; height: 1200px;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      animation: pulse-ring 6s ease-in-out infinite 2s;
-    }
-
-    @keyframes pulse-ring {
-      0%, 100% { opacity: 0.15; transform: translate(-50%, -50%) scale(1); }
-      50% { opacity: 0.05; transform: translate(-50%, -50%) scale(1.02); }
-    }
-
-    .hero-eyebrow {
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 1.5rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
-
-    .hero-eyebrow::before, .hero-eyebrow::after {
-      content: '';
-      display: block;
-      width: 40px;
-      height: 1px;
-      background: linear-gradient(to right, transparent, var(--gold));
-    }
-
-    .hero-eyebrow::after {
-      background: linear-gradient(to left, transparent, var(--gold));
-    }
-
-    .hero-title {
-      font-family: var(--font-display);
-      font-size: clamp(3rem, 8vw, 7rem);
-      font-weight: 700;
-      line-height: 1.05;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, var(--text) 0%, var(--gold-bright) 50%, var(--text) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      animation: shimmer 4s ease-in-out infinite;
-      background-size: 200% auto;
-    }
-
-    @keyframes shimmer {
-      0% { background-position: 0% center; }
-      50% { background-position: 100% center; }
-      100% { background-position: 0% center; }
-    }
-
-    .hero-subtitle {
-      font-size: clamp(1rem, 3vw, 1.6rem);
-      font-weight: 400;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 2.5rem;
-      font-family: var(--font-body);
-    }
-
-    .hero-info {
-      display: flex;
-      gap: 2.5rem;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-bottom: 3.5rem;
-    }
-
-    .hero-info-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.3rem;
-    }
-
-    .hero-info-item .label {
-      font-size: 0.62rem;
-      letter-spacing: 0.25em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .hero-info-item .value {
-      font-family: var(--font-display);
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .hero-divider {
-      width: 1px;
-      height: 40px;
-      background: var(--border-bright);
-    }
-
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 1rem 2.5rem;
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold), var(--gold-bright));
-      color: #000;
-      font-family: var(--font-body);
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      border: none;
-      cursor: pointer;
-      text-decoration: none;
-      clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
-      transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-primary::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: rgba(255,255,255,0.2);
-      transform: translateX(-100%);
-      transition: transform 0.4s ease;
-    }
-
-    .btn-primary:hover::before { transform: translateX(100%); }
-    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 15px 40px rgba(201,168,76,0.4); }
-    .btn-primary:active { transform: translateY(0); }
-
-    /* ───── COUNTDOWN ───── */
-    .countdown-section {
-      position: relative;
-      z-index: 1;
-      padding: 3rem 2rem;
-      text-align: center;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      background: rgba(201,168,76,0.03);
-    }
-
-    .countdown-label {
-      font-size: 0.65rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 1.5rem;
-    }
-
-    .countdown-grid {
-      display: flex;
-      gap: 1.5rem;
-      align-items: center;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
-
-    .countdown-unit {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .countdown-number {
-      font-family: var(--font-display);
-      font-size: clamp(2.5rem, 6vw, 4.5rem);
-      font-weight: 700;
-      color: var(--gold-bright);
-      line-height: 1;
-      min-width: 2ch;
-      text-align: center;
-    }
-
-    .countdown-unit-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    .countdown-colon {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 5vw, 4rem);
-      color: var(--gold);
-      margin-bottom: 1.2rem;
-      animation: blink 1s step-end infinite;
-    }
-
-    @keyframes blink {
-      50% { opacity: 0; }
-    }
-
-    /* ───── TICKETS SECTION ───── */
-    .section {
-      position: relative;
-      z-index: 1;
-      padding: 6rem 2rem;
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 4rem;
-    }
-
-    .section-eyebrow {
-      font-size: 0.65rem;
-      letter-spacing: 0.3em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-bottom: 1rem;
-    }
-
-    .section-title {
-      font-family: var(--font-display);
-      font-size: clamp(2rem, 5vw, 3.5rem);
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 1rem;
-    }
-
-    .section-line {
-      width: 60px;
-      height: 2px;
-      background: linear-gradient(to right, transparent, var(--gold), transparent);
-      margin: 0 auto;
-    }
-
-    /* ───── TICKET CARDS ───── */
-    .tickets-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .ticket-card {
-      position: relative;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      overflow: hidden;
-      transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-      cursor: pointer;
-    }
-
-    .ticket-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(to right, transparent, var(--card-color, var(--gold)), transparent);
-    }
-
-    .ticket-card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at 50% 0%, rgba(201,168,76,0.06) 0%, transparent 70%);
-      opacity: 0;
-      transition: opacity 0.4s;
-    }
-
-    .ticket-card:hover { 
-      transform: translateY(-6px);
-      border-color: var(--border-bright);
-      box-shadow: 0 20px 50px rgba(201,168,76,0.15);
-    }
-
-    .ticket-card:hover::after { opacity: 1; }
-
-    .ticket-card.vvip { --card-color: #FFD700; }
-    .ticket-card.vip { --card-color: #C9A84C; }
-    .ticket-card.standard { --card-color: #9B7B3A; }
-    .ticket-card.early { --card-color: #4A90D9; }
-
-    .ticket-card.sold-out { opacity: 0.5; cursor: not-allowed; }
-    .ticket-card.sold-out:hover { transform: none; box-shadow: none; }
-
-    .ticket-badge {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      font-size: 0.58rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.7rem;
-      background: rgba(255,215,0,0.15);
-      border: 1px solid rgba(255,215,0,0.4);
-      color: #FFD700;
-      border-radius: 2px;
-    }
-
-    .ticket-sold-badge {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      font-size: 0.58rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.7rem;
-      background: rgba(224,82,82,0.15);
-      border: 1px solid rgba(224,82,82,0.4);
-      color: var(--red);
-      border-radius: 2px;
-    }
-
-    .ticket-card-body {
-      padding: 2rem;
-    }
-
-    .ticket-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .ticket-type-name {
-      font-family: var(--font-display);
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--text);
-      margin-bottom: 0.3rem;
-    }
-
-    .ticket-type-desc {
-      font-size: 0.78rem;
-      color: var(--text-muted);
-      margin-bottom: 1.5rem;
-      line-height: 1.5;
-    }
-
-    .ticket-price {
-      font-family: var(--font-display);
-      font-size: 2.2rem;
-      font-weight: 600;
-      color: var(--gold-bright);
-      margin-bottom: 0.25rem;
-    }
-
-    .ticket-price span {
-      font-size: 1rem;
-      font-family: var(--font-body);
-      color: var(--text-muted);
-    }
-
-    .ticket-availability {
-      font-size: 0.68rem;
-      color: var(--text-muted);
-      letter-spacing: 0.1em;
-      margin-bottom: 1.5rem;
-    }
-
-    .ticket-availability.low { color: var(--red); }
-
-    .ticket-perks {
-      list-style: none;
-      margin-bottom: 2rem;
-    }
-
-    .ticket-perks li {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      padding: 0.3rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-
-    .ticket-perks li::before {
-      content: '◆';
-      color: var(--card-color, var(--gold));
-      font-size: 0.45rem;
-      flex-shrink: 0;
-    }
-
-    .ticket-card-divider {
-      border: none;
-      border-top: 1px dashed var(--border);
-      margin: 0 -2rem 1.5rem;
-      position: relative;
-    }
-
-    .ticket-card-divider::before,
-    .ticket-card-divider::after {
-      content: '';
-      position: absolute;
-      top: 50%;
-      width: 14px; height: 14px;
-      background: var(--black);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      transform: translateY(-50%);
-    }
-    .ticket-card-divider::before { left: -7px; }
-    .ticket-card-divider::after { right: -7px; }
-
-    .btn-buy {
-      width: 100%;
-      padding: 0.9rem 1.5rem;
-      background: transparent;
-      border: 1px solid var(--card-color, var(--gold));
-      color: var(--card-color, var(--gold));
-      font-family: var(--font-body);
-      font-size: 0.75rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.3s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-buy::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: var(--card-color, var(--gold));
-      transform: scaleX(0);
-      transform-origin: left;
-      transition: transform 0.3s ease;
-    }
-
-    .btn-buy span { position: relative; z-index: 1; }
-    .btn-buy:hover::before { transform: scaleX(1); }
-    .btn-buy:hover { color: #000; }
-    .btn-buy:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-buy:disabled::before { display: none; }
-
-    /* ───── MODAL ───── */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(6,6,6,0.9);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 1.5rem;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s;
-    }
-
-    .modal-backdrop.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      width: 100%;
-      max-width: 520px;
-      max-height: 90vh;
-      overflow-y: auto;
-      position: relative;
-      transform: translateY(30px);
-      transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .modal-backdrop.active .modal {
-      transform: translateY(0);
-    }
-
-    .modal-header {
-      padding: 2rem 2rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-    }
-
-    .modal-title {
-      font-family: var(--font-display);
-      font-size: 1.6rem;
-      font-weight: 700;
-    }
-
-    .modal-ticket-type {
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--gold);
-      margin-top: 0.2rem;
-    }
-
-    .modal-close {
-      background: none;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      width: 34px; height: 34px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 1rem;
-      transition: all 0.2s;
-      flex-shrink: 0;
-    }
-
-    .modal-close:hover { border-color: var(--gold); color: var(--gold); }
-
-    .modal-body {
-      padding: 2rem;
-    }
-
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1rem;
-    }
-
-    .form-group {
-      margin-bottom: 1.2rem;
-    }
-
-    .form-label {
-      display: block;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 0.5rem;
-    }
-
-    .form-input {
-      width: 100%;
-      padding: 0.85rem 1rem;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-body);
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .form-input:focus { border-color: var(--gold); }
-    .form-input::placeholder { color: var(--text-dim); }
-
-    .quantity-selector {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      border: 1px solid var(--border);
-    }
-
-    .qty-btn {
-      width: 44px; height: 44px;
-      background: var(--surface-2);
-      border: none;
-      color: var(--gold);
-      font-size: 1.2rem;
-      cursor: pointer;
-      transition: background 0.2s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .qty-btn:hover { background: var(--surface-3); }
-
-    .qty-value {
-      flex: 1;
-      text-align: center;
-      font-family: var(--font-display);
-      font-size: 1.3rem;
-      color: var(--text);
-      padding: 0.5rem;
-      background: var(--surface-2);
-    }
-
-    .order-summary {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      padding: 1.2rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .order-summary-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      padding: 0.3rem 0;
-    }
-
-    .order-summary-row.total {
-      border-top: 1px solid var(--border);
-      margin-top: 0.5rem;
-      padding-top: 0.8rem;
-      font-size: 1.1rem;
-      color: var(--text);
-      font-weight: 600;
-    }
-
-    .order-total-price {
-      font-family: var(--font-display);
-      font-size: 1.5rem;
-      color: var(--gold-bright);
-    }
-
-    .btn-pay {
-      width: 100%;
-      padding: 1.1rem;
-      background: linear-gradient(135deg, #8B6914, var(--gold), var(--gold-bright));
-      border: none;
-      color: #000;
-      font-family: var(--font-body);
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      cursor: pointer;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.3s;
-    }
-
-    .btn-pay:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(201,168,76,0.4); }
-    .btn-pay:active { transform: translateY(0); }
-    .btn-pay:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    .btn-pay .btn-icon { margin-right: 0.5rem; }
-
-    /* ───── SUCCESS MODAL ───── */
-    .success-modal {
-      text-align: center;
-      padding: 3rem 2rem;
-    }
-
-    .success-icon {
-      width: 80px; height: 80px;
-      border-radius: 50%;
-      background: rgba(82,201,122,0.1);
-      border: 1px solid rgba(82,201,122,0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2.5rem;
-      margin: 0 auto 1.5rem;
-      animation: success-bounce 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    @keyframes success-bounce {
-      0% { transform: scale(0); opacity: 0; }
-      70% { transform: scale(1.1); }
-      100% { transform: scale(1); opacity: 1; }
-    }
-
-    .success-code {
-      font-family: 'Courier New', monospace;
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: 0.15em;
-      color: var(--gold-bright);
-      background: var(--surface-2);
-      border: 1px solid var(--border-bright);
-      padding: 1rem 1.5rem;
-      margin: 1rem auto;
-      display: inline-block;
-    }
-
-    .btn-download {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.9rem 2rem;
-      background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-      border: none;
-      color: #000;
-      font-family: var(--font-body);
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 1rem;
-    }
-
-    .btn-download:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(201,168,76,0.3); }
-
-    /* ───── LOADING ───── */
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(6,6,6,0.9);
-      z-index: 2000;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s;
-    }
-
-    .loading-overlay.active { opacity: 1; visibility: visible; }
-
-    .loading-spinner {
-      width: 50px; height: 50px;
-      border: 2px solid var(--border);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text {
-      font-size: 0.75rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-    }
-
-    /* ───── TOAST ───── */
-    .toast-container {
-      position: fixed;
-      top: 5rem;
-      right: 1.5rem;
-      z-index: 3000;
-      display: flex;
-      flex-direction: column;
-      gap: 0.8rem;
-    }
-
-    .toast {
-      padding: 0.9rem 1.2rem;
-      background: var(--surface-3);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--gold);
-      font-size: 0.8rem;
-      min-width: 260px;
-      max-width: 360px;
-      transform: translateX(120%);
-      transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
-    }
-
-    .toast.show { transform: translateX(0); }
-    .toast.error { border-left-color: var(--red); }
-    .toast.success { border-left-color: var(--green); }
-
-    /* ───── FOOTER ───── */
-    footer {
-      position: relative;
-      z-index: 1;
-      padding: 2.5rem;
-      border-top: 1px solid var(--border);
-      text-align: center;
-    }
-
-    .footer-logo {
-      font-family: var(--font-display);
-      font-size: 1.3rem;
-      color: var(--gold);
-      margin-bottom: 0.5rem;
-    }
-
-    .footer-text {
-      font-size: 0.68rem;
-      color: var(--text-dim);
-      letter-spacing: 0.1em;
-    }
-
-    /* ───── LOADING CARDS ───── */
-    .skeleton {
-      background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%);
-      background-size: 200% 100%;
-      animation: skeleton-loading 1.5s infinite;
-      border-radius: 2px;
-    }
-
-    @keyframes skeleton-loading {
-      0% { background-position: 200% 0; }
-      100% { background-position: -200% 0; }
-    }
-
-    /* ───── SCROLLBAR ───── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--surface); }
-    ::-webkit-scrollbar-thumb { background: var(--gold-dark); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-
-    /* ───── RESPONSIVE ───── */
-    @media (max-width: 600px) {
-      nav { padding: 1rem 1.2rem; }
-      .form-row { grid-template-columns: 1fr; }
-      .hero-info { gap: 1rem; }
-      .hero-divider { display: none; }
-      .modal { max-height: 95vh; }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title id="page-title">BuyMyTicket</title>
+<meta name="description" content="Achetez vos tickets en ligne">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400&family=Epilogue:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════════════════════════════
+   VARIABLES — Overridden dynamically by merchant theme
+══════════════════════════════════════════════════ */
+:root {
+  --p:      #13005e;
+  --p2:     #1e007a;
+  --s:      #7c3aed;
+  --accent: #f59e0b;
+  --green:  #059669;
+  --red:    #dc2626;
+  --bg:     #faf9f6;
+  --bg2:    #f3f0eb;
+  --card:   #ffffff;
+  --border: #e5dfd4;
+  --border2:#d0c8bb;
+  --text:   #1a100a;
+  --muted:  #7a6a58;
+  --muted2: #b5a898;
+  --fhead:  'Fraunces', serif;
+  --fbody:  'Epilogue', sans-serif;
+  --fmono:  'JetBrains Mono', monospace;
+  --r:      12px;
+  --r2:     20px;
+  --sh:     0 2px 12px rgba(0,0,0,.06);
+  --sh2:    0 8px 32px rgba(0,0,0,.12);
+  --sh3:    0 20px 60px rgba(0,0,0,.16);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--fbody);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+img { display:block; max-width:100%; }
+button { font-family: var(--fbody); }
+
+/* ══════════════════════════════════════════════════
+   LOADING
+══════════════════════════════════════════════════ */
+#loading {
+  position: fixed; inset:0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 9999;
+  transition: opacity .5s, visibility .5s;
+}
+#loading.out { opacity:0; visibility:hidden; pointer-events:none; }
+.loader-logo {
+  font-family: var(--fhead);
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--p);
+  letter-spacing: -.3px;
+}
+.loader-logo span { color: var(--accent); }
+.loader-ring {
+  width: 44px; height: 44px;
+  border: 3px solid var(--border);
+  border-top-color: var(--p);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loader-text { font-size: 13px; color: var(--muted); }
+
+/* ══════════════════════════════════════════════════
+   ERROR SCREEN
+══════════════════════════════════════════════════ */
+#error-screen {
+  display: none;
+  position: fixed; inset:0;
+  background: var(--bg);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  text-align: center;
+  padding: 40px;
+  z-index: 999;
+}
+#error-screen.show { display:flex; }
+.error-emoji { font-size:64px; margin-bottom:20px; filter:grayscale(.5); }
+.error-title {
+  font-family: var(--fhead);
+  font-size: 28px; font-weight:700;
+  color: var(--p); margin-bottom:10px;
+}
+.error-sub { color: var(--muted); font-size:15px; max-width:360px; line-height:1.7; }
+.error-link {
+  margin-top:24px;
+  display:inline-flex; align-items:center; gap:8px;
+  padding:12px 24px;
+  background: var(--p); color:white;
+  border-radius: var(--r);
+  text-decoration:none; font-weight:600; font-size:14px;
+  transition: background .2s;
+}
+.error-link:hover { background: var(--p2); }
+
+/* ══════════════════════════════════════════════════
+   MAIN APP
+══════════════════════════════════════════════════ */
+#app { min-height:100vh; display:none; }
+
+/* ══════════════════════════════════════════════════
+   HERO
+══════════════════════════════════════════════════ */
+#hero {
+  position: relative;
+  min-height: 340px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.hero-bg {
+  position:absolute; inset:0;
+  background: linear-gradient(135deg, var(--p) 0%, var(--s) 100%);
+  background-size: cover;
+  background-position: center;
+  transition: opacity .6s;
+}
+.hero-bg::after {
+  content:'';
+  position:absolute; inset:0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0,0,0,.15) 0%,
+    rgba(0,0,0,.55) 60%,
+    rgba(0,0,0,.75) 100%
+  );
+}
+.hero-pattern {
+  position:absolute; inset:0; z-index:1;
+  background-image: radial-gradient(circle at 20% 80%, rgba(255,255,255,.05) 0%, transparent 50%),
+                    radial-gradient(circle at 80% 20%, rgba(255,255,255,.08) 0%, transparent 50%);
+}
+.hero-content {
+  position:relative; z-index:2;
+  padding: 40px 40px 36px;
+  max-width: 900px;
+  margin:0 auto;
+  width:100%;
+}
+.hero-logo-wrap {
+  width: 72px; height:72px;
+  border-radius: 16px;
+  background: white;
+  overflow: hidden;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.35);
+  flex-shrink:0;
+}
+.hero-logo-wrap img { width:100%; height:100%; object-fit:cover; }
+.hero-initial {
+  font-family: var(--fhead);
+  font-size:30px; font-weight:900;
+  color: var(--p);
+}
+.hero-name {
+  font-family: var(--fhead);
+  font-size: 38px; font-weight:900;
+  color: white; line-height:1.1;
+  margin-bottom:8px;
+  text-shadow: 0 2px 12px rgba(0,0,0,.35);
+}
+.hero-sub { color: rgba(255,255,255,.78); font-size:15px; max-width:520px; line-height:1.7; }
+.hero-pills {
+  display:flex; flex-wrap:wrap; gap:8px;
+  margin-top: 18px;
+}
+.hero-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 14px;
+  background: rgba(255,255,255,.13);
+  backdrop-filter: blur(10px);
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:100px;
+  color:white; font-size:12px; font-weight:500;
+}
+
+/* ══════════════════════════════════════════════════
+   BREADCRUMB / STEPS
+══════════════════════════════════════════════════ */
+#steps-bar {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top:0; z-index:100;
+  box-shadow: var(--sh);
+}
+.steps-inner {
+  max-width:900px; margin:0 auto; padding:0 40px;
+  display:flex;
+}
+.step-item {
+  flex:1; display:flex; align-items:center; gap:8px;
+  padding:14px 0; opacity:.38;
+  transition:opacity .3s;
+  font-size:13px; font-weight:500; color: var(--text);
+  white-space:nowrap;
+}
+.step-item.active { opacity:1; }
+.step-item.done   { opacity:.65; }
+.step-num {
+  width:24px; height:24px; border-radius:50%;
+  background: var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700;
+  flex-shrink:0;
+  transition: background .3s, color .3s;
+}
+.step-item.active .step-num { background: var(--p); color:white; }
+.step-item.done   .step-num { background: var(--green); color:white; font-size:12px; }
+.step-sep { flex:0; padding:0 6px; opacity:.3; color:var(--muted); font-size:16px; }
+
+/* ══════════════════════════════════════════════════
+   CONTAINER
+══════════════════════════════════════════════════ */
+.container { max-width:900px; margin:0 auto; padding:0 40px; }
+
+/* ══════════════════════════════════════════════════
+   SECTION HEADER
+══════════════════════════════════════════════════ */
+.sec-label {
+  font-size:11px; font-weight:700;
+  letter-spacing:.14em; text-transform:uppercase;
+  color: var(--s); margin-bottom:6px;
+}
+.sec-title {
+  font-family: var(--fhead);
+  font-size:26px; font-weight:700; color: var(--p);
+}
+.section-head { margin-bottom:28px; }
+
+/* ══════════════════════════════════════════════════
+   EVENTS SECTION
+══════════════════════════════════════════════════ */
+#events-section { padding:48px 0 80px; }
+.events-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px,1fr));
+  gap: 20px;
+}
+.event-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r2);
+  overflow:hidden; cursor:pointer;
+  transition: transform .22s cubic-bezier(.2,.8,.3,1), box-shadow .22s, border-color .22s;
+}
+.event-card:hover {
+  transform: translateY(-5px) scale(1.01);
+  box-shadow: var(--sh3);
+  border-color: var(--p);
+}
+.ev-img {
+  height:190px; position:relative; overflow:hidden;
+  background: linear-gradient(135deg, var(--p), var(--s));
+}
+.ev-img img { width:100%; height:100%; object-fit:cover; }
+.ev-img-overlay {
+  position:absolute; inset:0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,.5) 100%);
+}
+.ev-cat {
+  position:absolute; top:12px; left:12px;
+  padding:4px 10px;
+  background:rgba(0,0,0,.45); backdrop-filter:blur(6px);
+  border-radius:100px; color:white;
+  font-size:11px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.06em;
+}
+.ev-date-badge {
+  position:absolute; top:12px; right:12px;
+  background:white; border-radius:10px; padding:6px 10px;
+  text-align:center; box-shadow:0 2px 10px rgba(0,0,0,.25);
+  min-width:44px;
+}
+.ev-day { font-family:var(--fhead); font-size:22px; font-weight:900; color:var(--p); line-height:1; }
+.ev-month { font-size:9px; font-weight:700; text-transform:uppercase; color:var(--muted); letter-spacing:.06em; }
+.ev-body { padding:20px; }
+.ev-name {
+  font-family: var(--fhead);
+  font-size:18px; font-weight:700; color:var(--text);
+  margin-bottom:8px; line-height:1.3;
+}
+.ev-meta { display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+.ev-meta-row {
+  display:flex; align-items:center; gap:7px;
+  color:var(--muted); font-size:13px;
+}
+.ev-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-top:14px; border-top:1px solid var(--border);
+}
+.ev-price-from { font-size:11px; color:var(--muted); margin-bottom:2px; }
+.ev-min-price {
+  font-family:var(--fhead); font-size:21px; font-weight:800; color:var(--p);
+}
+.ev-min-price sup { font-size:12px; font-weight:500; color:var(--muted); }
+.btn-ev {
+  padding:9px 18px;
+  background: var(--p); color:white;
+  border:none; border-radius:var(--r);
+  font-weight:600; font-size:13px; cursor:pointer;
+  transition: background .2s, transform .1s;
+}
+.btn-ev:hover { background: var(--p2); }
+.btn-ev:active { transform:scale(.95); }
+.ev-sold-out { opacity:.55; pointer-events:none; }
+.badge-sold-out {
+  display:inline-block; padding:2px 8px;
+  background:#fee2e2; color:var(--red);
+  border-radius:100px; font-size:10px; font-weight:700;
+  text-transform:uppercase;
+}
+
+/* ══════════════════════════════════════════════════
+   TICKETS SECTION
+══════════════════════════════════════════════════ */
+#tickets-section { padding:40px 0 100px; display:none; }
+.back-btn {
+  display:inline-flex; align-items:center; gap:8px;
+  background:none; border:none; color:var(--muted);
+  font-family:var(--fbody); font-size:14px; cursor:pointer;
+  margin-bottom:24px; padding:0;
+  transition:color .2s;
+}
+.back-btn:hover { color:var(--p); }
+.event-detail-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r2);
+  padding:28px; margin-bottom:32px;
+  display:grid; grid-template-columns:1fr auto;
+  gap:24px; align-items:start;
+}
+.evd-name {
+  font-family:var(--fhead); font-size:26px; font-weight:800;
+  color:var(--p); margin-bottom:12px; line-height:1.2;
+}
+.evd-metas { display:flex; flex-direction:column; gap:8px; margin-bottom:14px; }
+.evd-meta-row {
+  display:flex; align-items:center; gap:10px;
+  color:var(--muted); font-size:14px;
+}
+.evd-desc { color:var(--muted); font-size:14px; line-height:1.75; max-width:520px; }
+.evd-img {
+  width:140px; height:130px; border-radius:16px;
+  object-fit:cover; flex-shrink:0;
+  background:linear-gradient(135deg,var(--p),var(--s));
+}
+.tt-list-title {
+  font-family:var(--fhead); font-size:20px; font-weight:700;
+  color:var(--p); margin-bottom:16px;
+}
+.tt-grid { display:flex; flex-direction:column; gap:14px; }
+
+/* Ticket Type Card */
+.tt-card {
+  background: var(--card);
+  border:2px solid var(--border);
+  border-radius: var(--r2);
+  padding:22px 26px;
+  display:grid; grid-template-columns:1fr auto;
+  gap:20px; align-items:center;
+  transition:border-color .2s, box-shadow .2s;
+}
+.tt-card.has-qty {
+  border-color: var(--p);
+  box-shadow: 0 0 0 4px rgba(19,0,94,.06);
+}
+.tt-card.unavailable { opacity:.55; pointer-events:none; }
+.tt-name {
+  font-family:var(--fhead); font-size:18px; font-weight:700;
+  color:var(--text); margin-bottom:5px;
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+}
+.tt-desc { color:var(--muted); font-size:13px; margin-bottom:10px; line-height:1.6; }
+.tt-perks { display:flex; flex-wrap:wrap; gap:7px; }
+.tt-perk {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:3px 10px;
+  background:rgba(19,0,94,.06); color:var(--p);
+  border-radius:100px; font-size:11px; font-weight:500;
+}
+.tt-right { text-align:right; flex-shrink:0; }
+.tt-price {
+  font-family:var(--fhead); font-size:24px; font-weight:800;
+  color:var(--p); margin-bottom:10px; white-space:nowrap;
+}
+.tt-price sub { font-size:13px; font-weight:500; color:var(--muted); }
+.qty-ctrl {
+  display:inline-flex; align-items:center;
+  background:var(--bg2); border:1.5px solid var(--border);
+  border-radius:10px; overflow:hidden;
+}
+.qty-btn {
+  width:36px; height:36px; background:none; border:none;
+  font-size:19px; font-weight:700; cursor:pointer;
+  color:var(--p); display:flex; align-items:center; justify-content:center;
+  transition:background .15s;
+}
+.qty-btn:hover:not(:disabled) { background:var(--border); }
+.qty-btn:disabled { opacity:.28; cursor:not-allowed; }
+.qty-val {
+  width:42px; text-align:center;
+  font-family:var(--fmono); font-size:15px; font-weight:600;
+  color:var(--text); pointer-events:none;
+}
+.tt-avail-note { font-size:12px; color:var(--muted); margin-top:6px; text-align:right; }
+.tt-avail-note.low { color:var(--red); font-weight:500; }
+
+/* Badge inline */
+.badge {
+  display:inline-block; padding:2px 9px;
+  border-radius:100px; font-size:10px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
+}
+.badge-coming { background:#fef3c7; color:#92400e; }
+.badge-ended  { background:#f3f4f6; color:#6b7280; }
+.badge-full   { background:#fee2e2; color:var(--red); }
+.badge-free   { background:#dcfce7; color:var(--green); }
+
+/* ══════════════════════════════════════════════════
+   CART BAR
+══════════════════════════════════════════════════ */
+#cart-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:white; border-top:1.5px solid var(--border);
+  padding:14px 40px;
+  display:none; align-items:center; justify-content:space-between; gap:16px;
+  z-index:50;
+  box-shadow:0 -8px 32px rgba(0,0,0,.1);
+}
+#cart-bar.show { display:flex; }
+.cart-info .cart-qty { font-size:13px; color:var(--muted); margin-bottom:1px; }
+.cart-info .cart-price {
+  font-family:var(--fhead); font-size:22px; font-weight:800; color:var(--p);
+}
+.btn-continue {
+  padding:14px 28px;
+  background:var(--p); color:white;
+  border:none; border-radius:var(--r);
+  font-weight:700; font-size:15px; cursor:pointer;
+  transition:background .2s, transform .1s;
+  white-space:nowrap;
+}
+.btn-continue:hover { background:var(--p2); }
+.btn-continue:active { transform:scale(.97); }
+
+/* ══════════════════════════════════════════════════
+   CHECKOUT SECTION
+══════════════════════════════════════════════════ */
+#checkout-section { padding:40px 0 80px; display:none; }
+.checkout-grid {
+  display:grid; grid-template-columns:1fr 370px; gap:28px; align-items:start;
+}
+.form-card {
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--r2); padding:28px;
+}
+.form-card-title {
+  font-family:var(--fhead); font-size:20px; font-weight:700;
+  color:var(--p); margin-bottom:22px;
+}
+.fgroup { margin-bottom:18px; }
+.fgroup label {
+  display:block; font-size:11px; font-weight:700;
+  letter-spacing:.09em; text-transform:uppercase;
+  color:var(--muted); margin-bottom:8px;
+}
+.fgroup input, .fgroup select {
+  width:100%; padding:12px 16px;
+  background:var(--bg); border:1.5px solid var(--border);
+  border-radius:var(--r); color:var(--text);
+  font-family:var(--fbody); font-size:14px;
+  outline:none; transition:border .2s, box-shadow .2s;
+}
+.fgroup input:focus, .fgroup select:focus {
+  border-color:var(--p);
+  box-shadow:0 0 0 3px rgba(19,0,94,.08);
+}
+.fgroup input::placeholder { color:var(--muted2); }
+.frow { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.field-note { font-size:11px; color:var(--muted); margin-top:5px; }
+
+/* Order Summary */
+.summary-card {
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--r2); padding:24px;
+  position:sticky; top:80px;
+}
+.summary-card-title {
+  font-family:var(--fhead); font-size:18px; font-weight:700;
+  color:var(--p); margin-bottom:18px; padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+}
+.sum-event {
+  display:flex; gap:12px; align-items:center;
+  margin-bottom:18px; padding-bottom:18px;
+  border-bottom:1px solid var(--border);
+}
+.sum-ev-img {
+  width:54px; height:54px; border-radius:10px;
+  object-fit:cover; flex-shrink:0;
+  background:linear-gradient(135deg,var(--p),var(--s));
+}
+.sum-ev-name { font-weight:600; font-size:14px; color:var(--text); margin-bottom:2px; }
+.sum-ev-date { font-size:12px; color:var(--muted); }
+
+.sum-items { margin-bottom:14px; }
+.sum-row {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:7px 0; font-size:14px; gap:10px;
+}
+.sum-row-left { display:flex; align-items:center; gap:8px; }
+.sum-row-name { color:var(--text); }
+.sum-row-badge {
+  font-size:10px; padding:2px 7px; background:var(--bg2);
+  border-radius:100px; color:var(--muted); font-weight:600;
+}
+.sum-row-price { font-weight:600; color:var(--text); white-space:nowrap; }
+
+.sum-divider { border:none; border-top:1px dashed var(--border); margin:10px 0; }
+
+.sum-fee-row {
+  display:flex; justify-content:space-between;
+  font-size:13px; padding:3px 0; color:var(--muted);
+}
+.sum-total-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:14px; padding-top:14px;
+  border-top:2px solid var(--border);
+}
+.sum-total-label { font-weight:700; font-size:15px; }
+.sum-total-amount {
+  font-family:var(--fhead); font-size:28px; font-weight:800; color:var(--p);
+}
+.sum-total-currency { font-size:13px; color:var(--muted); font-weight:400; }
+
+.btn-pay {
+  width:100%; margin-top:20px; padding:16px;
+  background:var(--p); color:white;
+  border:none; border-radius:var(--r);
+  font-family:var(--fhead); font-weight:700; font-size:16px;
+  cursor:pointer; transition:background .2s, transform .1s;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.btn-pay:hover:not(:disabled) { background:var(--p2); }
+.btn-pay:active:not(:disabled) { transform:scale(.98); }
+.btn-pay:disabled { opacity:.55; cursor:not-allowed; }
+.pay-note {
+  margin-top:12px; font-size:12px; color:var(--muted);
+  text-align:center; line-height:1.6;
+}
+
+/* ══════════════════════════════════════════════════
+   SUCCESS SECTION
+══════════════════════════════════════════════════ */
+#success-section { padding:60px 0 80px; display:none; text-align:center; }
+.success-anim {
+  width:84px; height:84px; border-radius:50%;
+  background:#dcfce7; margin:0 auto 24px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:38px;
+  animation:popIn .5s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes popIn {
+  0% { transform:scale(0) rotate(-30deg); opacity:0; }
+  70%{ transform:scale(1.12) rotate(4deg); opacity:1; }
+  100%{ transform:scale(1) rotate(0deg); }
+}
+.success-title {
+  font-family:var(--fhead); font-size:34px; font-weight:900;
+  color:var(--p); margin-bottom:10px;
+}
+.success-sub {
+  color:var(--muted); font-size:15px; max-width:500px;
+  margin:0 auto 36px; line-height:1.7;
+}
+.order-ref-box {
+  display:inline-flex; align-items:center; gap:10px;
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--r); padding:10px 18px; margin-bottom:36px;
+  font-family:var(--fmono); font-size:14px; color:var(--p); font-weight:500;
+}
+.dl-list { max-width:500px; margin:0 auto 36px; display:flex; flex-direction:column; gap:12px; }
+.dl-item {
+  background:var(--card); border:1.5px solid var(--border);
+  border-radius:var(--r2); padding:18px 22px;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+  text-align:left;
+}
+.dl-info .dl-tname { font-weight:600; font-size:14px; color:var(--text); margin-bottom:3px; }
+.dl-info .dl-tnum { font-family:var(--fmono); font-size:12px; color:var(--muted); }
+.btn-dl {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:10px 18px;
+  background:var(--p); color:white;
+  border:none; border-radius:var(--r);
+  font-weight:600; font-size:13px; cursor:pointer;
+  transition:background .2s; white-space:nowrap;
+  flex-shrink:0;
+}
+.btn-dl:hover { background:var(--p2); }
+.btn-dl.loading { opacity:.6; pointer-events:none; }
+.success-note {
+  color:var(--muted); font-size:13px; max-width:460px;
+  margin:0 auto; line-height:1.9;
+}
+
+/* ══════════════════════════════════════════════════
+   FOOTER
+══════════════════════════════════════════════════ */
+footer {
+  background:var(--p); color:rgba(255,255,255,.55);
+  text-align:center; padding:26px 24px;
+  font-size:13px; margin-top:60px;
+}
+footer a { color:rgba(255,255,255,.75); text-decoration:none; }
+footer strong { color:white; }
+
+/* ══════════════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════════════ */
+#toasts {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  z-index:9999; display:flex; flex-direction:column; gap:8px;
+  pointer-events:none; min-width:220px; max-width:90vw;
+}
+.toast {
+  padding:12px 20px; border-radius:12px;
+  color:white; font-size:14px; font-weight:500;
+  box-shadow:0 4px 20px rgba(0,0,0,.2);
+  animation:toastSlide .3s ease;
+  display:flex; align-items:center; gap:8px;
+  width:fit-content; max-width:100%; margin:0 auto;
+}
+.toast.success { background:var(--green); }
+.toast.error   { background:var(--red); }
+.toast.info    { background:#2563eb; }
+@keyframes toastSlide {
+  from { opacity:0; transform:translateY(14px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+/* ══════════════════════════════════════════════════
+   PROCESSING OVERLAY
+══════════════════════════════════════════════════ */
+#processing {
+  position:fixed; inset:0;
+  background:rgba(250,249,246,.88);
+  backdrop-filter:blur(8px);
+  display:none; align-items:center; justify-content:center;
+  flex-direction:column; gap:20px; z-index:8999;
+}
+#processing.show { display:flex; }
+.proc-ring {
+  width:52px; height:52px;
+  border:4px solid var(--border);
+  border-top-color:var(--p);
+  border-radius:50%;
+  animation:spin .8s linear infinite;
+}
+.proc-title { font-family:var(--fhead); font-size:22px; font-weight:700; color:var(--p); }
+.proc-sub   { font-size:14px; color:var(--muted); }
+
+/* ══════════════════════════════════════════════════
+   CONFETTI
+══════════════════════════════════════════════════ */
+@keyframes confettiFall {
+  0%   { opacity:1; transform:translateY(-20px) rotate(0deg); }
+  100% { opacity:0; transform:translateY(105vh) rotate(720deg); }
+}
+
+/* ══════════════════════════════════════════════════
+   EMPTY STATE
+══════════════════════════════════════════════════ */
+.empty-state {
+  text-align:center; padding:60px 20px; color:var(--muted);
+}
+.empty-state .icon { font-size:48px; margin-bottom:16px; }
+.empty-state p { font-size:15px; }
+
+/* ══════════════════════════════════════════════════
+   RESPONSIVE
+══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .hero-content { padding:24px 20px 28px; }
+  .hero-name { font-size:28px; }
+  .container { padding:0 20px; }
+  .steps-inner { padding:0 20px; overflow-x:auto; }
+  .step-item span { display:none; }
+  .checkout-grid { grid-template-columns:1fr; }
+  .summary-card { position:static; }
+  .event-detail-card { grid-template-columns:1fr; }
+  .evd-img { display:none; }
+  .tt-card { grid-template-columns:1fr; }
+  .tt-right { display:flex; align-items:center; gap:20px; justify-content:space-between; }
+  .tt-right .tt-avail-note { text-align:left; }
+  #cart-bar { padding:12px 20px; }
+  .frow { grid-template-columns:1fr; }
+}
+@media (max-width:480px) {
+  .hero-logo-wrap { width:60px; height:60px; }
+  .hero-name { font-size:24px; }
+  .ev-name { font-size:16px; }
+  .success-title { font-size:26px; }
+  .dl-item { flex-direction:column; text-align:center; }
+  .btn-dl { width:100%; justify-content:center; }
+}
+</style>
 </head>
 <body>
-  <div class="noise-overlay"></div>
 
-  <!-- Loading Overlay -->
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-spinner"></div>
-    <p class="loading-text" id="loadingText">Traitement en cours…</p>
-  </div>
+<!-- ══ LOADING ══════════════════════════════════════ -->
+<div id="loading">
+  <div class="loader-logo">Buy<span>My</span>Ticket</div>
+  <div class="loader-ring"></div>
+  <div class="loader-text">Chargement de la billetterie…</div>
+</div>
 
-  <!-- Toast Container -->
-  <div class="toast-container" id="toastContainer"></div>
+<!-- ══ ERROR SCREEN ══════════════════════════════════ -->
+<div id="error-screen">
+  <div class="error-emoji">🎫</div>
+  <div class="error-title">Page introuvable</div>
+  <div class="error-sub" id="error-msg">Cette page de billetterie n'existe pas ou a été désactivée par le vendeur.</div>
+  <a href="https://buymyticket.pages.dev" class="error-link">↩ Retour à l'accueil</a>
+</div>
 
-  <!-- NAV -->
-  <nav>
-    <div class="nav-logo">Leaders Afro Chill Village</div>
-    <div class="nav-badge">Billetterie Officielle</div>
-  </nav>
+<!-- ══ MAIN APP ══════════════════════════════════════ -->
+<div id="app">
 
   <!-- HERO -->
-  <section class="hero">
-    <div class="hero-decoration">
-      <div class="hero-circle hero-circle-1"></div>
-      <div class="hero-circle hero-circle-2"></div>
-      <div class="hero-circle hero-circle-3"></div>
+  <div id="hero">
+    <div class="hero-bg" id="hero-bg"></div>
+    <div class="hero-pattern"></div>
+    <div class="hero-content">
+      <div class="hero-logo-wrap" id="hero-logo">
+        <span class="hero-initial" id="hero-initial">?</span>
+      </div>
+      <div class="hero-name" id="hero-name">Chargement…</div>
+      <div class="hero-sub" id="hero-sub"></div>
+      <div class="hero-pills" id="hero-pills"></div>
     </div>
-    <p class="hero-eyebrow">Édition 2025</p>
-    <h1 class="hero-title">Leaders Afro<br>Chill Village</h1>
-    <p class="hero-subtitle">L'Événement Africain de l'Année</p>
-    <div class="hero-info">
-      <div class="hero-info-item">
-        <span class="label">Date</span>
-        <span class="value" id="eventDate">À Confirmer</span>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-info-item">
-        <span class="label">Lieu</span>
-        <span class="value" id="eventVenue">Cotonou, Bénin</span>
-      </div>
-      <div class="hero-divider"></div>
-      <div class="hero-info-item">
-        <span class="label">Tickets</span>
-        <span class="value" id="totalSold">— vendus</span>
-      </div>
-    </div>
-    <a href="#tickets" class="btn-primary">
-      ◆ Réserver ma place
-    </a>
-  </section>
+  </div>
 
-  <!-- COUNTDOWN -->
-  <div class="countdown-section">
-    <p class="countdown-label">Compte à rebours</p>
-    <div class="countdown-grid">
-      <div class="countdown-unit">
-        <div class="countdown-number" id="cdDays">00</div>
-        <div class="countdown-unit-label">Jours</div>
+  <!-- STEPS BAR -->
+  <div id="steps-bar">
+    <div class="steps-inner">
+      <div class="step-item active" id="step-1">
+        <div class="step-num" id="sn-1">1</div>
+        <span>Événements</span>
       </div>
-      <div class="countdown-colon">:</div>
-      <div class="countdown-unit">
-        <div class="countdown-number" id="cdHours">00</div>
-        <div class="countdown-unit-label">Heures</div>
+      <div class="step-sep">›</div>
+      <div class="step-item" id="step-2">
+        <div class="step-num" id="sn-2">2</div>
+        <span>Tickets</span>
       </div>
-      <div class="countdown-colon">:</div>
-      <div class="countdown-unit">
-        <div class="countdown-number" id="cdMins">00</div>
-        <div class="countdown-unit-label">Minutes</div>
+      <div class="step-sep">›</div>
+      <div class="step-item" id="step-3">
+        <div class="step-num" id="sn-3">3</div>
+        <span>Paiement</span>
       </div>
-      <div class="countdown-colon">:</div>
-      <div class="countdown-unit">
-        <div class="countdown-number" id="cdSecs">00</div>
-        <div class="countdown-unit-label">Secondes</div>
+      <div class="step-sep">›</div>
+      <div class="step-item" id="step-4">
+        <div class="step-num" id="sn-4">4</div>
+        <span>Confirmation</span>
       </div>
     </div>
   </div>
 
-  <!-- TICKETS SECTION -->
-  <section class="section" id="tickets">
-    <div class="section-header">
-      <p class="section-eyebrow">Réservez maintenant</p>
-      <h2 class="section-title">Choisissez votre expérience</h2>
-      <div class="section-line"></div>
-    </div>
-    <div class="tickets-grid" id="ticketsGrid">
-      <!-- Skeleton loaders -->
-      <div style="height:400px; background:var(--surface); border:1px solid var(--border); padding:2rem;">
-        <div class="skeleton" style="height:2rem; width:60%; margin-bottom:1rem;"></div>
-        <div class="skeleton" style="height:1rem; width:80%; margin-bottom:2rem;"></div>
-        <div class="skeleton" style="height:3rem; width:50%; margin-bottom:3rem;"></div>
-        <div class="skeleton" style="height:1rem; width:100%; margin-bottom:0.5rem;"></div>
-        <div class="skeleton" style="height:1rem; width:90%; margin-bottom:0.5rem;"></div>
-        <div class="skeleton" style="height:1rem; width:95%; margin-bottom:2rem;"></div>
-        <div class="skeleton" style="height:3rem; width:100%;"></div>
+  <!-- ══ STEP 1 : EVENTS ════════════════════════════ -->
+  <section id="events-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="sec-label">Billetterie officielle</div>
+        <div class="sec-title" id="events-section-title">Nos événements</div>
       </div>
-      <div style="height:400px; background:var(--surface); border:1px solid var(--border); padding:2rem;">
-        <div class="skeleton" style="height:2rem; width:60%; margin-bottom:1rem;"></div>
-        <div class="skeleton" style="height:1rem; width:80%; margin-bottom:2rem;"></div>
-        <div class="skeleton" style="height:3rem; width:50%; margin-bottom:3rem;"></div>
-        <div class="skeleton" style="height:1rem; width:100%; margin-bottom:0.5rem;"></div>
-        <div class="skeleton" style="height:1rem; width:90%; margin-bottom:0.5rem;"></div>
-        <div class="skeleton" style="height:1rem; width:95%; margin-bottom:2rem;"></div>
-        <div class="skeleton" style="height:3rem; width:100%;"></div>
-      </div>
-      <div style="height:400px; background:var(--surface); border:1px solid var(--border); padding:2rem;">
-        <div class="skeleton" style="height:2rem; width:60%; margin-bottom:1rem;"></div>
-        <div class="skeleton" style="height:1rem; width:80%; margin-bottom:2rem;"></div>
-        <div class="skeleton" style="height:3rem; width:50%; margin-bottom:3rem;"></div>
-        <div class="skeleton" style="height:1rem; width:100%; margin-bottom:0.5rem;"></div>
-        <div class="skeleton" style="height:1rem; width:90%; margin-bottom:0.5rem;"></div>
-        <div class="skeleton" style="height:1rem; width:95%; margin-bottom:2rem;"></div>
-        <div class="skeleton" style="height:3rem; width:100%;"></div>
-      </div>
+      <div class="events-grid" id="events-grid"></div>
     </div>
   </section>
 
-  <!-- FOOTER -->
-  <footer>
-    <div class="footer-logo">Leaders Afro Chill Village</div>
-    <p class="footer-text">Billetterie sécurisée · Paiement via KKiaPay · Ticket PDF avec code unique</p>
-    <p class="footer-text" style="margin-top:0.4rem; color:rgba(245,237,214,0.15);">© 2025 Leaders Afro Chill Village · Tous droits réservés</p>
-  </footer>
-
-  <!-- BOOKING MODAL -->
-  <div class="modal-backdrop" id="bookingModal">
-    <div class="modal">
-      <div class="modal-header">
-        <div>
-          <div class="modal-title" id="modalTitle">Réserver</div>
-          <div class="modal-ticket-type" id="modalTicketType">Ticket Standard</div>
-        </div>
-        <button class="modal-close" onclick="closeModal('bookingModal')">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Prénom</label>
-            <input type="text" class="form-input" id="inputFirstName" placeholder="Jean" required>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Nom</label>
-            <input type="text" class="form-input" id="inputLastName" placeholder="Dupont" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Adresse Email</label>
-          <input type="email" class="form-input" id="inputEmail" placeholder="jean@exemple.com" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Numéro de Téléphone</label>
-          <input type="tel" class="form-input" id="inputPhone" placeholder="+229 XX XXX XXXX" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Quantité</label>
-          <div class="quantity-selector">
-            <button class="qty-btn" onclick="changeQty(-1)">−</button>
-            <div class="qty-value" id="qtyValue">1</div>
-            <button class="qty-btn" onclick="changeQty(1)">+</button>
-          </div>
-        </div>
-
-        <div class="order-summary">
-          <div class="order-summary-row">
-            <span id="summaryDesc">1× Ticket Standard</span>
-            <span id="summarySubtotal">10 000 FCFA</span>
-          </div>
-          <div class="order-summary-row">
-            <span>Frais de service</span>
-            <span>Inclus</span>
-          </div>
-          <div class="order-summary-row total">
-            <span>Total</span>
-            <span class="order-total-price" id="summaryTotal">10 000 FCFA</span>
-          </div>
-        </div>
-
-        <button class="btn-pay" id="payBtn" onclick="initiatePayment()">
-          <span class="btn-icon">🔒</span>
-          Payer Maintenant
-        </button>
-        <p style="font-size:0.65rem; color:var(--text-dim); text-align:center; margin-top:0.8rem; letter-spacing:0.05em;">
-          Paiement sécurisé via KKiaPay · Mobile Money & Carte bancaire
-        </p>
-      </div>
+  <!-- ══ STEP 2 : TICKET TYPES ══════════════════════ -->
+  <section id="tickets-section">
+    <div class="container">
+      <button class="back-btn" onclick="navBack('events')">
+        ← Retour aux événements
+      </button>
+      <div class="event-detail-card" id="event-detail-card"></div>
+      <div class="tt-list-title">Choisissez vos tickets</div>
+      <div class="tt-grid" id="tt-grid"></div>
     </div>
+  </section>
+
+  <!-- CART BAR (sticky) -->
+  <div id="cart-bar">
+    <div class="cart-info">
+      <div class="cart-qty" id="cart-qty-text"></div>
+      <div class="cart-price" id="cart-price-text"></div>
+    </div>
+    <button class="btn-continue" onclick="goToCheckout()">Continuer →</button>
   </div>
 
-  <!-- SUCCESS MODAL -->
-  <div class="modal-backdrop" id="successModal">
-    <div class="modal" style="max-width:460px;">
-      <div class="modal-header">
-        <div class="modal-title">Paiement Confirmé !</div>
-        <button class="modal-close" onclick="closeModal('successModal')">✕</button>
+  <!-- ══ STEP 3 : CHECKOUT ══════════════════════════ -->
+  <section id="checkout-section">
+    <div class="container">
+      <button class="back-btn" onclick="navBack('tickets')">
+        ← Modifier ma sélection
+      </button>
+      <div class="section-head">
+        <div class="sec-label">Finaliser la commande</div>
+        <div class="sec-title">Vos informations</div>
       </div>
-      <div class="success-modal">
-        <div class="success-icon">✓</div>
-        <h3 style="font-family:var(--font-display); font-size:1.4rem; margin-bottom:0.5rem;">Votre ticket est prêt</h3>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:1rem;">Code unique de votre ticket :</p>
-        <div class="success-code" id="successCode">LACV-XXXX-XXXX</div>
-        <p style="font-size:0.72rem; color:var(--text-muted); margin-top:0.8rem; line-height:1.6;">
-          Conservez ce code. Il sera scanné à l'entrée.<br>
-          Le PDF contient également le QR Code.
-        </p>
-        <button class="btn-download" onclick="downloadCurrentTicket()">
-          ⬇ Télécharger le Ticket PDF
-        </button>
-        <p style="font-size:0.65rem; color:var(--text-dim); margin-top:1rem;">
-          Un email de confirmation vous sera envoyé à <span id="successEmail">—</span>
-        </p>
-      </div>
-    </div>
-  </div>
+      <div class="checkout-grid">
 
-  <!-- Hidden QR Code container -->
-  <div id="qrContainer" style="position:absolute; left:-9999px; top:-9999px;"></div>
-
-  <script>
-    // ═══════════════════════════════════════════
-    // CONFIGURATION
-    // ═══════════════════════════════════════════
-    const SUPABASE_URL = 'https://mvsoffwlemvgcyxnuwnp.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12c29mZndsZW12Z2N5eG51d25wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY4NDMwODgsImV4cCI6MjA5MjQxOTA4OH0.P3wrnA6x0mONqt5P3cT9imDw59B1rksivTtVDi7Ony8';
-    const KKIAPAY_KEY = 'adaa98fcfed792479755dbc84a0dfdaf91482b8e';
-    
-    // Date de l'événement — à modifier
-    const EVENT_DATE = new Date('2025-12-20T20:00:00');
-    const EVENT_DATE_DISPLAY = '20 Décembre 2025';
-    const EVENT_VENUE = 'Cotonou, Bénin';
-
-    // ═══════════════════════════════════════════
-    // INIT SUPABASE
-    // ═══════════════════════════════════════════
-    const { createClient } = supabase;
-    const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ═══════════════════════════════════════════
-    // STATE
-    // ═══════════════════════════════════════════
-    let currentTicket = null;
-    let currentQty = 1;
-    let lastTicketData = null;
-    let kkiapayReady = false;
-
-    // ═══════════════════════════════════════════
-    // INIT
-    // ═══════════════════════════════════════════
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('eventDate').textContent = EVENT_DATE_DISPLAY;
-      document.getElementById('eventVenue').textContent = EVENT_VENUE;
-      loadTicketTypes();
-      startCountdown();
-      setupKKiaPay();
-    });
-
-    // ═══════════════════════════════════════════
-    // KKIAPAY SETUP
-    // ═══════════════════════════════════════════
-    function setupKKiaPay() {
-      const checkKkiapay = setInterval(() => {
-        if (typeof addSuccessListener !== 'undefined') {
-          kkiapayReady = true;
-          clearInterval(checkKkiapay);
-          addSuccessListener(handlePaymentSuccess);
-          addFailedListener(handlePaymentFailed);
-        }
-      }, 300);
-    }
-
-    // ═══════════════════════════════════════════
-    // COUNTDOWN
-    // ═══════════════════════════════════════════
-    function startCountdown() {
-      function tick() {
-        const now = new Date();
-        const diff = EVENT_DATE - now;
-        if (diff <= 0) {
-          document.getElementById('cdDays').textContent = '00';
-          document.getElementById('cdHours').textContent = '00';
-          document.getElementById('cdMins').textContent = '00';
-          document.getElementById('cdSecs').textContent = '00';
-          return;
-        }
-        const d = Math.floor(diff / 86400000);
-        const h = Math.floor((diff % 86400000) / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        document.getElementById('cdDays').textContent = String(d).padStart(2, '0');
-        document.getElementById('cdHours').textContent = String(h).padStart(2, '0');
-        document.getElementById('cdMins').textContent = String(m).padStart(2, '0');
-        document.getElementById('cdSecs').textContent = String(s).padStart(2, '0');
-      }
-      tick();
-      setInterval(tick, 1000);
-    }
-
-    // ═══════════════════════════════════════════
-    // LOAD TICKET TYPES
-    // ═══════════════════════════════════════════
-    const TICKET_ICONS = { 'VVIP': '👑', 'VIP': '⭐', 'STANDARD': '🎟️', 'EARLY BIRD': '🕊️' };
-    const TICKET_CLASSES = { 'VVIP': 'vvip', 'VIP': 'vip', 'STANDARD': 'standard', 'EARLY BIRD': 'early' };
-
-    async function loadTicketTypes() {
-      try {
-        const { data, error } = await db
-          .from('ticket_types')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order');
-
-        if (error) throw error;
-        renderTickets(data);
-
-        // Load total sold
-        const { data: stats } = await db
-          .from('tickets')
-          .select('quantity')
-          .eq('payment_status', 'completed');
-        
-        if (stats) {
-          const total = stats.reduce((sum, t) => sum + (t.quantity || 1), 0);
-          document.getElementById('totalSold').textContent = `${total.toLocaleString('fr-FR')} vendus`;
-        }
-      } catch (err) {
-        console.error('Supabase error:', err);
-        renderTickets(getDefaultTickets());
-        showToast('Données chargées en mode hors ligne', 'info');
-      }
-    }
-
-    function getDefaultTickets() {
-      return [
-        { id: 'vvip-default', name: 'VVIP', description: 'Expérience ultime & accès total', price: 50000, perks: ['Accès Lounge Privé VVIP', 'Table réservée', '2 bouteilles premium', 'Fast-track entrée', 'Meet & Greet artistes'], quantity_total: 50, quantity_sold: 0, color: '#FFD700', sort_order: 1 },
-        { id: 'vip-default', name: 'VIP', description: 'Accès zone premium & privilèges', price: 25000, perks: ['Zone VIP dédiée', 'Vue scène privilégiée', '1 bouteille offerte', 'Accès bar prioritaire'], quantity_total: 150, quantity_sold: 0, color: '#C9A84C', sort_order: 2 },
-        { id: 'std-default', name: 'STANDARD', description: 'Accès général — Vivez la fête', price: 10000, perks: ['Accès général événement', 'Ambiance festive garantie', 'Accès aux stands'], quantity_total: 500, quantity_sold: 0, color: '#9B7B3A', sort_order: 3 },
-        { id: 'eb-default', name: 'EARLY BIRD', description: 'Tarif spécial — Offre limitée', price: 7500, perks: ['Accès général', 'Prix réduit exclusif', 'Disponible en quantité limitée'], quantity_total: 100, quantity_sold: 0, color: '#4A90D9', sort_order: 4 }
-      ];
-    }
-
-    function renderTickets(tickets) {
-      const grid = document.getElementById('ticketsGrid');
-      if (!tickets || tickets.length === 0) {
-        grid.innerHTML = '<p style="color:var(--text-muted); text-align:center; grid-column:1/-1; padding:3rem;">Aucun ticket disponible pour le moment.</p>';
-        return;
-      }
-
-      grid.innerHTML = tickets.map(t => {
-        const available = t.quantity_total - (t.quantity_sold || 0);
-        const isSoldOut = available <= 0;
-        const isLow = available > 0 && available <= 20;
-        const cls = TICKET_CLASSES[t.name] || 'standard';
-        const icon = TICKET_ICONS[t.name] || '🎟️';
-
-        return `
-        <div class="ticket-card ${cls} ${isSoldOut ? 'sold-out' : ''}" 
-             style="--card-color: ${t.color || '#C9A84C'}"
-             onclick="${isSoldOut ? '' : `openBookingModal(${JSON.stringify(t).replace(/"/g, '&quot;')})`}">
-          ${t.name === 'VVIP' && !isSoldOut ? '<span class="ticket-badge">★ Premium</span>' : ''}
-          ${t.name === 'EARLY BIRD' && !isSoldOut ? '<span class="ticket-badge" style="color:#4A90D9;border-color:rgba(74,144,217,0.5);background:rgba(74,144,217,0.1);">Limité</span>' : ''}
-          ${isSoldOut ? '<span class="ticket-sold-badge">Complet</span>' : ''}
-          <div class="ticket-card-body">
-            <span class="ticket-icon">${icon}</span>
-            <div class="ticket-type-name">${t.name}</div>
-            <div class="ticket-type-desc">${t.description || ''}</div>
-            <div class="ticket-price">${(t.price).toLocaleString('fr-FR')} <span>FCFA</span></div>
-            <div class="ticket-availability ${isLow ? 'low' : ''}">
-              ${isSoldOut ? 'Épuisé' : isLow ? `⚠ Plus que ${available} places` : `${available} places disponibles`}
+        <!-- Form -->
+        <div class="form-card">
+          <div class="form-card-title">👤 Coordonnées de l'acheteur</div>
+          <div class="frow">
+            <div class="fgroup">
+              <label>Prénom *</label>
+              <input type="text" id="f-prenom" placeholder="Jean" autocomplete="given-name">
             </div>
-            <hr class="ticket-card-divider">
-            <ul class="ticket-perks">
-              ${(t.perks || []).map(p => `<li>${p}</li>`).join('')}
-            </ul>
-            <button class="btn-buy" ${isSoldOut ? 'disabled' : ''}>
-              <span>${isSoldOut ? 'Épuisé' : 'Réserver ce ticket'}</span>
-            </button>
+            <div class="fgroup">
+              <label>Nom *</label>
+              <input type="text" id="f-nom" placeholder="Dupont" autocomplete="family-name">
+            </div>
           </div>
-        </div>`;
-      }).join('');
-    }
+          <div class="fgroup">
+            <label>Adresse email *</label>
+            <input type="email" id="f-email" placeholder="jean.dupont@email.com" autocomplete="email">
+            <div class="field-note">📩 Votre ticket PDF vous sera envoyé à cette adresse</div>
+          </div>
+          <div class="fgroup">
+            <label>Téléphone Mobile Money</label>
+            <input type="tel" id="f-tel" placeholder="97 00 00 00" autocomplete="tel">
+            <div class="field-note">Optionnel — pour confirmation par SMS</div>
+          </div>
+        </div>
 
-    // ═══════════════════════════════════════════
-    // MODAL BOOKING
-    // ═══════════════════════════════════════════
-    function openBookingModal(ticket) {
-      if (!ticket) return;
-      currentTicket = ticket;
-      currentQty = 1;
+        <!-- Summary -->
+        <div class="summary-card">
+          <div class="summary-card-title">🎟 Récapitulatif</div>
+          <div class="sum-event" id="sum-event"></div>
+          <div class="sum-items" id="sum-items"></div>
+          <hr class="sum-divider">
+          <div id="sum-fees"></div>
+          <div class="sum-total-row">
+            <div class="sum-total-label">Total à payer</div>
+            <div>
+              <span class="sum-total-amount" id="sum-total">0</span>
+              <span class="sum-total-currency"> XOF</span>
+            </div>
+          </div>
+          <button class="btn-pay" id="btn-pay" onclick="startPayment()">
+            🔒 Payer maintenant
+          </button>
+          <div class="pay-note">
+            Paiement sécurisé via <strong>FedaPay</strong><br>
+            MTN MoMo · Moov Money · Celtiis Cash
+          </div>
+        </div>
 
-      document.getElementById('modalTitle').textContent = `Ticket ${ticket.name}`;
-      document.getElementById('modalTicketType').textContent = ticket.description || '';
-      document.getElementById('qtyValue').textContent = '1';
-      updateOrderSummary();
+      </div>
+    </div>
+  </section>
 
-      document.getElementById('bookingModal').classList.add('active');
-      document.body.style.overflow = 'hidden';
-    }
+  <!-- ══ STEP 4 : SUCCESS ═══════════════════════════ -->
+  <section id="success-section">
+    <div class="container">
+      <div class="success-anim">✅</div>
+      <div class="success-title">Paiement confirmé !</div>
+      <div class="success-sub">
+        Vos tickets ont été générés avec succès. Téléchargez-les ci-dessous et présentez le QR Code à l'entrée.
+      </div>
+      <div class="order-ref-box">
+        🧾 Commande : <strong id="order-ref-disp">—</strong>
+      </div>
+      <div class="dl-list" id="dl-list"></div>
+      <div class="success-note">
+        📬 Un email de confirmation sera envoyé à <strong id="email-sent"></strong><br>
+        🔐 Chaque ticket contient un QR Code unique et infalsifiable.<br>
+        📲 Présentez votre ticket à l'entrée pour accéder à l'événement.
+      </div>
+    </div>
+  </section>
 
-    function closeModal(id) {
-      document.getElementById(id).classList.remove('active');
-      document.body.style.overflow = '';
-    }
+  <footer>
+    Billetterie propulsée par <strong>BuyMyTicket</strong> &nbsp;·&nbsp;
+    <a href="mailto:support@buymyticket.bj">Aide &amp; Support</a> &nbsp;·&nbsp;
+    <a href="#">Vérifier un ticket</a>
+  </footer>
+</div>
 
-    function changeQty(delta) {
-      if (!currentTicket) return;
-      const available = currentTicket.quantity_total - (currentTicket.quantity_sold || 0);
-      currentQty = Math.max(1, Math.min(currentQty + delta, Math.min(10, available)));
-      document.getElementById('qtyValue').textContent = currentQty;
-      updateOrderSummary();
-    }
+<!-- TOAST CONTAINER -->
+<div id="toasts"></div>
 
-    function updateOrderSummary() {
-      if (!currentTicket) return;
-      const subtotal = currentTicket.price * currentQty;
-      document.getElementById('summaryDesc').textContent = `${currentQty}× Ticket ${currentTicket.name}`;
-      document.getElementById('summarySubtotal').textContent = formatFCFA(subtotal);
-      document.getElementById('summaryTotal').textContent = formatFCFA(subtotal);
-    }
+<!-- PROCESSING OVERLAY -->
+<div id="processing">
+  <div class="proc-ring"></div>
+  <div class="proc-title" id="proc-title">Traitement…</div>
+  <div class="proc-sub"   id="proc-sub">Veuillez patienter</div>
+</div>
 
-    function formatFCFA(n) {
-      return n.toLocaleString('fr-FR') + ' FCFA';
-    }
+<!-- ══════════════════════════════════════════════════
+     SCRIPTS
+══════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    // ═══════════════════════════════════════════
-    // PAYMENT
-    // ═══════════════════════════════════════════
-    function initiatePayment() {
-      const firstName = document.getElementById('inputFirstName').value.trim();
-      const lastName = document.getElementById('inputLastName').value.trim();
-      const email = document.getElementById('inputEmail').value.trim();
-      const phone = document.getElementById('inputPhone').value.trim();
+<script>
+'use strict';
+// ══════════════════════════════════════════════════
+//  ⚙  CONFIG — Remplacer par vos vraies valeurs
+// ══════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://VOTRE_PROJET.supabase.co';
+const SUPABASE_KEY  = 'VOTRE_CLE_ANON_PUBLIQUE';
+const BASE_URL      = 'https://buymyticket.pages.dev';
 
-      if (!firstName || !lastName) { showToast('Veuillez entrer votre prénom et nom.', 'error'); return; }
-      if (!email || !email.includes('@')) { showToast('Veuillez entrer une adresse email valide.', 'error'); return; }
-      if (!phone || phone.length < 8) { showToast('Veuillez entrer un numéro de téléphone valide.', 'error'); return; }
-      if (!currentTicket) { showToast('Veuillez sélectionner un ticket.', 'error'); return; }
+// ══════════════════════════════════════════════════
+//  🗄  SUPABASE
+// ══════════════════════════════════════════════════
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      const amount = currentTicket.price * currentQty;
-      const fullName = `${firstName} ${lastName}`;
+// ══════════════════════════════════════════════════
+//  🧠  STATE
+// ══════════════════════════════════════════════════
+let pageData      = null;   // merchant_pages row
+let merchantData  = null;   // merchants row
+let eventsData    = [];     // events[]
+let selectedEvent = null;
+let ticketTypes   = [];
+let cart          = {};     // { ttId: qty }
+let feeConfig     = null;   // result of calculate_service_fee RPC
+let fedapayKey    = null;
+let lastOrderRef  = null;
+let createdTickets = [];    // tickets[] after order
+let cartSubtotal  = 0;
 
-      if (!kkiapayReady) {
-        showToast('Le service de paiement est en cours de chargement. Veuillez patienter.', 'info');
-        setTimeout(() => initiatePayment(), 2000);
-        return;
+// ══════════════════════════════════════════════════
+//  🚀  INIT
+// ══════════════════════════════════════════════════
+async function init() {
+  const slug = new URLSearchParams(window.location.search).get('event');
+  if (!slug) {
+    showError('Aucun lien d\'événement spécifié. Vérifiez l\'URL.');
+    return;
+  }
+  try {
+    await Promise.all([loadPage(slug), loadSettings()]);
+    hideLoading();
+  } catch (err) {
+    console.error('[BMT]', err);
+    showError(err.message || 'Erreur de chargement. Réessayez dans un moment.');
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  📦  LOAD PAGE DATA
+// ══════════════════════════════════════════════════
+async function loadPage(slug) {
+  const { data, error } = await db
+    .from('merchant_pages')
+    .select(`
+      id, slug, page_title, page_subtitle,
+      logo_url, banner_url,
+      primary_color, secondary_color, font_family,
+      contact_email, contact_phone, contact_address,
+      social_links, is_published,
+      merchants!inner (
+        id, business_name, business_description,
+        momo_operator, fedapay_recipient_id, momo_number,
+        is_active, is_verified,
+        events (
+          id, name, description, event_date, event_end_date,
+          event_location, event_address, image_url, category,
+          max_attendees, sale_start_at, sale_end_at,
+          is_active, is_published,
+          ticket_types (
+            id, name, description, price, currency,
+            quantity_total, quantity_sold, max_per_order,
+            perks, is_active, sale_start_at, sale_end_at, sort_order
+          )
+        )
+      )
+    `)
+    .eq('slug', slug)
+    .eq('is_published', true)
+    .single();
+
+  if (error || !data) {
+    throw new Error('Page de billetterie introuvable ou désactivée.');
+  }
+  if (!data.merchants || !data.merchants.is_active) {
+    throw new Error('Ce compte marchand est actuellement inactif.');
+  }
+
+  pageData      = data;
+  merchantData  = data.merchants;
+  eventsData    = (merchantData.events || [])
+    .filter(e => e.is_active && e.is_published)
+    .sort((a, b) => new Date(a.event_date||0) - new Date(b.event_date||0));
+
+  if (!eventsData.length) {
+    throw new Error('Aucun événement disponible pour le moment. Revenez bientôt !');
+  }
+
+  applyTheme();
+  renderHero();
+  renderEvents();
+
+  // Si un seul événement → aller directement aux tickets
+  if (eventsData.length === 1) {
+    selectEvent(eventsData[0].id);
+  } else {
+    showSection('events');
+    setStep(1);
+  }
+}
+
+async function loadSettings() {
+  const { data } = await db
+    .from('admin_settings')
+    .select('key, value')
+    .in('key', ['fedapay_public_key', 'fedapay_environment', 'platform_name']);
+
+  if (data) {
+    const s = Object.fromEntries(data.map(r => [r.key, r.value]));
+    fedapayKey = s.fedapay_public_key || null;
+    if (fedapayKey) injectScript('https://cdn.fedapay.com/checkout.js?v=1.1.7');
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  🎨  THEME
+// ══════════════════════════════════════════════════
+function applyTheme() {
+  const pc   = pageData.primary_color   || '#13005e';
+  const sc   = pageData.secondary_color || '#7c3aed';
+  const font = pageData.font_family     || 'Epilogue';
+
+  const r = document.documentElement;
+  r.style.setProperty('--p',  pc);
+  r.style.setProperty('--s',  sc);
+  r.style.setProperty('--p2', shadeColor(pc, -25));
+
+  const serif = ['Fraunces','Playfair Display','Libre Baskerville'];
+  const fCss  = `'${font}', ${serif.includes(font) ? 'serif' : 'sans-serif'}`;
+  r.style.setProperty('--fbody', fCss);
+  r.style.setProperty('--fhead', fCss);
+
+  document.title = (pageData.page_title || merchantData.business_name) + ' — Billetterie';
+
+  // Load merchant's custom font if needed
+  if (!['Epilogue','Inter','Poppins','Montserrat'].includes(font)) {
+    injectLink(`https://fonts.googleapis.com/css2?family=${encodeURIComponent(font)}:wght@400;600;700;800;900&display=swap`);
+  }
+}
+
+function shadeColor(hex, amt) {
+  const n = parseInt(hex.replace('#',''), 16);
+  const r = Math.min(255, Math.max(0, (n >> 16) + amt));
+  const g = Math.min(255, Math.max(0, ((n >> 8) & 0xff) + amt));
+  const b = Math.min(255, Math.max(0, (n & 0xff) + amt));
+  return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+// ══════════════════════════════════════════════════
+//  🏔  HERO
+// ══════════════════════════════════════════════════
+function renderHero() {
+  const name = pageData.page_title    || merchantData.business_name || 'Billetterie';
+  const sub  = pageData.page_subtitle || merchantData.business_description || '';
+
+  qs('#hero-name').textContent   = name;
+  qs('#hero-sub').textContent    = sub;
+  qs('#hero-initial').textContent = name[0].toUpperCase();
+
+  if (pageData.logo_url) {
+    qs('#hero-logo').innerHTML = `<img src="${e(pageData.logo_url)}" alt="Logo ${e(name)}">`;
+  }
+
+  if (pageData.banner_url) {
+    qs('#hero-bg').style.cssText = `
+      background-image:url('${e(pageData.banner_url)}');
+      background-size:cover; background-position:center;
+    `;
+  } else {
+    qs('#hero-bg').style.background =
+      `linear-gradient(135deg, ${pageData.primary_color||'#13005e'}, ${pageData.secondary_color||'#7c3aed'})`;
+  }
+
+  const pills = [];
+  if (eventsData.length > 0)
+    pills.push(`🎟 ${eventsData.length} événement${eventsData.length > 1 ? 's' : ''}`);
+  if (pageData.contact_phone)
+    pills.push(`📞 ${pageData.contact_phone}`);
+  if (pageData.contact_address)
+    pills.push(`📍 ${pageData.contact_address}`);
+
+  qs('#hero-pills').innerHTML = pills
+    .map(p => `<span class="hero-pill">${p}</span>`).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  📅  EVENTS
+// ══════════════════════════════════════════════════
+function renderEvents() {
+  const grid = qs('#events-grid');
+  if (!eventsData.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">📭</div><p>Aucun événement disponible pour le moment.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = eventsData.map(ev => {
+    const prices   = (ev.ticket_types || []).filter(t => t.is_active).map(t => +t.price);
+    const minPrice = prices.length ? Math.min(...prices) : 0;
+    const allSoldOut = (ev.ticket_types || []).every(t => {
+      if (!t.is_active) return true;
+      return t.quantity_total !== null && t.quantity_sold >= t.quantity_total;
+    });
+    const date    = ev.event_date ? new Date(ev.event_date) : null;
+    const day     = date ? date.getDate() : null;
+    const month   = date ? date.toLocaleDateString('fr-FR', { month:'short' }) : null;
+    const catMap  = { event:'🎉 Événement', shop:'🛍 Boutique', concert:'🎶 Concert', conf:'🎤 Conférence' };
+    const catStr  = catMap[ev.category] || '🎫 Événement';
+    const remaining = (ev.ticket_types||[]).reduce((acc, t) => {
+      if (t.quantity_total === null || !t.is_active) return acc;
+      return acc + Math.max(0, t.quantity_total - t.quantity_sold);
+    }, 0);
+    const hasLimit = (ev.ticket_types||[]).some(t => t.quantity_total !== null);
+
+    return `
+    <div class="event-card ${allSoldOut ? 'ev-sold-out' : ''}" onclick="selectEvent('${ev.id}')">
+      <div class="ev-img">
+        ${ev.image_url ? `<img src="${e(ev.image_url)}" alt="${e(ev.name)}" loading="lazy">` : ''}
+        <div class="ev-img-overlay"></div>
+        <span class="ev-cat">${catStr}</span>
+        ${date ? `<div class="ev-date-badge"><div class="ev-day">${day}</div><div class="ev-month">${month}</div></div>` : ''}
+        ${allSoldOut ? `<div style="position:absolute;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center"><span class="badge-sold-out">Complet</span></div>` : ''}
+      </div>
+      <div class="ev-body">
+        <div class="ev-name">${e(ev.name)}</div>
+        <div class="ev-meta">
+          ${date ? `<div class="ev-meta-row">📅 ${fmtDateLong(date)}</div>` : ''}
+          ${ev.event_location ? `<div class="ev-meta-row">📍 ${e(ev.event_location)}</div>` : ''}
+          ${hasLimit && !allSoldOut ? `<div class="ev-meta-row">🎟 ${remaining} place${remaining > 1 ? 's' : ''} disponible${remaining > 1 ? 's' : ''}</div>` : ''}
+        </div>
+        <div class="ev-footer">
+          <div>
+            <div class="ev-price-from">${minPrice === 0 ? '' : 'À partir de'}</div>
+            <div class="ev-min-price">
+              ${minPrice === 0 ? '<span class="badge badge-free">GRATUIT</span>' : `${fmt(minPrice)} <sup>XOF</sup>`}
+            </div>
+          </div>
+          <button class="btn-ev">${allSoldOut ? 'Complet' : 'Voir →'}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  🎫  SELECT EVENT
+// ══════════════════════════════════════════════════
+function selectEvent(eventId) {
+  selectedEvent = eventsData.find(ev => ev.id === eventId);
+  if (!selectedEvent) return;
+
+  ticketTypes = (selectedEvent.ticket_types || [])
+    .filter(t => t.is_active)
+    .sort((a, b) => (a.sort_order - b.sort_order) || (a.price - b.price));
+
+  cart = {};
+  renderEventDetail();
+  renderTicketTypes();
+  showSection('tickets');
+  setStep(2);
+  window.scrollTo({ top: 0, behavior:'smooth' });
+}
+
+function renderEventDetail() {
+  const ev   = selectedEvent;
+  const date = ev.event_date ? new Date(ev.event_date) : null;
+
+  qs('#event-detail-card').innerHTML = `
+    <div>
+      <div class="evd-name">${e(ev.name)}</div>
+      <div class="evd-metas">
+        ${date ? `<div class="evd-meta-row">📅 ${fmtDateLong(date)}</div>` : ''}
+        ${ev.event_end_date ? `<div class="evd-meta-row">⏰ Fin : ${fmtDateLong(new Date(ev.event_end_date))}</div>` : ''}
+        ${ev.event_location ? `<div class="evd-meta-row">📍 ${e(ev.event_location)}${ev.event_address ? ` — ${e(ev.event_address)}` : ''}</div>` : ''}
+      </div>
+      ${ev.description ? `<div class="evd-desc">${e(ev.description)}</div>` : ''}
+    </div>
+    ${ev.image_url
+      ? `<img class="evd-img" src="${e(ev.image_url)}" alt="${e(ev.name)}" loading="lazy">`
+      : `<div class="evd-img"></div>`}
+  `;
+}
+
+function renderTicketTypes() {
+  const grid = qs('#tt-grid');
+  const now  = Date.now();
+
+  if (!ticketTypes.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="icon">🎟</div><p>Aucun type de ticket disponible.</p></div>`;
+    return;
+  }
+
+  grid.innerHTML = ticketTypes.map(t => {
+    const remaining  = t.quantity_total !== null ? Math.max(0, t.quantity_total - t.quantity_sold) : Infinity;
+    const soldOut    = remaining === 0;
+    const notYet     = t.sale_start_at && new Date(t.sale_start_at) > now;
+    const ended      = t.sale_end_at   && new Date(t.sale_end_at)   < now;
+    const unavailable= soldOut || notYet || ended;
+    const maxQty     = Math.min(t.max_per_order || 10, remaining === Infinity ? 10 : remaining);
+    const isFree     = +t.price === 0;
+    const perks      = parsePerkList(t.perks);
+
+    let badge = '';
+    if (soldOut) badge = '<span class="badge badge-full">Complet</span>';
+    else if (notYet) badge = '<span class="badge badge-coming">Bientôt</span>';
+    else if (ended)  badge = '<span class="badge badge-ended">Terminé</span>';
+    else if (isFree) badge = '<span class="badge badge-free">Gratuit</span>';
+
+    return `
+    <div class="tt-card ${unavailable ? 'unavailable' : ''}" id="ttc-${t.id}">
+      <div>
+        <div class="tt-name">${e(t.name)} ${badge}</div>
+        ${t.description ? `<div class="tt-desc">${e(t.description)}</div>` : ''}
+        ${perks.length ? `<div class="tt-perks">${perks.map(p => `<span class="tt-perk">✓ ${e(p)}</span>`).join('')}</div>` : ''}
+      </div>
+      <div class="tt-right">
+        <div class="tt-price">
+          ${isFree ? '<span class="badge badge-free" style="font-size:16px">GRATUIT</span>' : `${fmt(t.price)} <sub>XOF</sub>`}
+        </div>
+        ${!unavailable ? `
+          <div class="qty-ctrl">
+            <button class="qty-btn" id="qb-minus-${t.id}" onclick="updateQty('${t.id}',-1)" disabled>−</button>
+            <span class="qty-val"  id="qv-${t.id}">0</span>
+            <button class="qty-btn" id="qb-plus-${t.id}"  onclick="updateQty('${t.id}',1)">+</button>
+          </div>
+          <div class="tt-avail-note ${remaining < 15 && remaining !== Infinity ? 'low' : ''}" id="qnote-${t.id}">
+            ${remaining !== Infinity && remaining < 15 ? `⚠ ${remaining} restante${remaining > 1 ? 's' : ''}` :
+              remaining !== Infinity ? `${remaining} places disponibles` : 'Places disponibles'}
+          </div>
+        ` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+//  🛒  CART
+// ══════════════════════════════════════════════════
+function updateQty(ttId, delta) {
+  const t = ticketTypes.find(x => x.id === ttId);
+  if (!t) return;
+
+  const remaining = t.quantity_total !== null
+    ? Math.max(0, t.quantity_total - t.quantity_sold) : Infinity;
+  const max = Math.min(t.max_per_order || 10, remaining === Infinity ? 10 : remaining);
+  const cur = cart[ttId] || 0;
+  const next = Math.max(0, Math.min(max, cur + delta));
+
+  if (next === 0) delete cart[ttId]; else cart[ttId] = next;
+
+  // Update buttons & display
+  const qv = qs('#qv-'+ttId);
+  if (qv) qv.textContent = next;
+
+  const bm = qs('#qb-minus-'+ttId);
+  const bp = qs('#qb-plus-'+ttId);
+  if (bm) bm.disabled = (next === 0);
+  if (bp) bp.disabled = (next >= max);
+
+  const card = qs('#ttc-'+ttId);
+  if (card) card.classList.toggle('has-qty', next > 0);
+
+  updateCartBar();
+}
+
+function updateCartBar() {
+  const items    = Object.entries(cart);
+  const totalQty = items.reduce((s, [, q]) => s + q, 0);
+  cartSubtotal   = items.reduce((s, [id, q]) => {
+    const t = ticketTypes.find(x => x.id === id);
+    return s + (t ? +t.price * q : 0);
+  }, 0);
+
+  const bar = qs('#cart-bar');
+  if (totalQty === 0) { bar.classList.remove('show'); return; }
+  bar.classList.add('show');
+
+  qs('#cart-qty-text').textContent   = `${totalQty} ticket${totalQty > 1 ? 's' : ''} sélectionné${totalQty > 1 ? 's' : ''}`;
+  qs('#cart-price-text').textContent = `${fmt(cartSubtotal)} XOF`;
+}
+
+// ══════════════════════════════════════════════════
+//  💳  CHECKOUT
+// ══════════════════════════════════════════════════
+async function goToCheckout() {
+  const items = Object.entries(cart);
+  if (!items.length) { toast('Sélectionnez au moins un ticket', 'error'); return; }
+
+  // Recalculate fees via RPC
+  try {
+    const { data } = await db.rpc('calculate_service_fee', {
+      p_merchant_id: merchantData.id,
+      p_amount: cartSubtotal,
+    });
+    feeConfig = (data && data[0]) ? data[0] : null;
+  } catch { feeConfig = null; }
+
+  renderCheckout();
+  showSection('checkout');
+  setStep(3);
+  qs('#cart-bar').classList.remove('show');
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+function renderCheckout() {
+  const ev   = selectedEvent;
+  const date = ev.event_date ? new Date(ev.event_date) : null;
+
+  // Event summary block
+  qs('#sum-event').innerHTML = `
+    ${ev.image_url
+      ? `<img class="sum-ev-img" src="${e(ev.image_url)}" alt="${e(ev.name)}">`
+      : `<div class="sum-ev-img"></div>`}
+    <div>
+      <div class="sum-ev-name">${e(ev.name)}</div>
+      ${date ? `<div class="sum-ev-date">📅 ${fmtDateLong(date)}</div>` : ''}
+      ${ev.event_location ? `<div class="sum-ev-date">📍 ${e(ev.event_location)}</div>` : ''}
+    </div>`;
+
+  // Items
+  const rows = Object.entries(cart).map(([id, qty]) => {
+    const t = ticketTypes.find(x => x.id === id);
+    if (!t) return '';
+    return `
+    <div class="sum-row">
+      <div class="sum-row-left">
+        <span class="sum-row-name">${e(t.name)}</span>
+        <span class="sum-row-badge">×${qty}</span>
+      </div>
+      <span class="sum-row-price">${fmt(+t.price * qty)} XOF</span>
+    </div>`;
+  }).join('');
+  qs('#sum-items').innerHTML = rows;
+
+  // Fees
+  let total = cartSubtotal;
+  const feesEl = qs('#sum-fees');
+
+  if (feeConfig && +feeConfig.fee_amount > 0 && feeConfig.admin_keeps_fee) {
+    total = cartSubtotal + +feeConfig.fee_amount;
+    feesEl.innerHTML = `
+      <div class="sum-fee-row"><span>Sous-total</span><span>${fmt(cartSubtotal)} XOF</span></div>
+      <div class="sum-fee-row"><span>Frais de service</span><span>+ ${fmt(feeConfig.fee_amount)} XOF</span></div>
+    `;
+    feesEl.style.display = 'block';
+  } else {
+    feesEl.innerHTML = '';
+    feesEl.style.display = 'none';
+    total = cartSubtotal;
+  }
+
+  qs('#sum-total').textContent = fmt(total);
+}
+
+function getTotal() {
+  if (feeConfig && +feeConfig.fee_amount > 0 && feeConfig.admin_keeps_fee) {
+    return cartSubtotal + +feeConfig.fee_amount;
+  }
+  return cartSubtotal;
+}
+
+// ══════════════════════════════════════════════════
+//  💰  PAYMENT (FedaPay)
+// ══════════════════════════════════════════════════
+function startPayment() {
+  const prenom = qs('#f-prenom').value.trim();
+  const nom    = qs('#f-nom').value.trim();
+  const email  = qs('#f-email').value.trim();
+  const tel    = qs('#f-tel').value.trim();
+
+  if (!prenom) { toast('Entrez votre prénom', 'error'); qs('#f-prenom').focus(); return; }
+  if (!nom)    { toast('Entrez votre nom', 'error');    qs('#f-nom').focus();    return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    toast('Adresse email invalide', 'error');
+    qs('#f-email').focus(); return;
+  }
+
+  if (!fedapayKey) {
+    toast('Paiement non configuré. Contactez l\'organisateur.', 'error'); return;
+  }
+
+  if (typeof FedaPay === 'undefined') {
+    toast('Module de paiement non chargé. Rechargez la page.', 'error'); return;
+  }
+
+  const total    = getTotal();
+  const totalQty = Object.values(cart).reduce((s, q) => s + q, 0);
+
+  // Disable pay button to prevent double click
+  qs('#btn-pay').disabled = true;
+
+  FedaPay.init({
+    public_key: fedapayKey,
+    transaction: {
+      amount: Math.round(total),
+      description: `${totalQty} ticket${totalQty > 1 ? 's' : ''} — ${selectedEvent.name}`,
+      custom_metadata: {
+        event_id:    selectedEvent.id,
+        merchant_id: merchantData.id,
+        slug:        pageData.slug,
+      },
+    },
+    customer: {
+      firstname: prenom,
+      lastname:  nom,
+      email:     email,
+      ...(tel ? { phone_number: { number: tel.replace(/\s/g, ''), country: 'bj' } } : {}),
+    },
+    onComplete: async function(resp) {
+      qs('#btn-pay').disabled = false;
+      if (resp.reason === FedaPay.DIALOG_DISMISSED) {
+        toast('Paiement annulé', 'info'); return;
       }
-
-      // Store pending data
-      window._pendingOrder = { firstName, lastName, fullName, email, phone, amount, ticket: currentTicket, qty: currentQty };
-
-      try {
-        openKkiapayWidget({
-          amount: amount,
-          api_key: KKIAPAY_KEY,
-          sandbox: false,
-          email: email,
-          phone: phone,
-          name: fullName,
-        });
-      } catch (e) {
-        console.error('KKiaPay error:', e);
-        showToast('Erreur lors de l\'ouverture du paiement. Veuillez réessayer.', 'error');
-      }
-    }
-
-    async function handlePaymentSuccess(response) {
-      const order = window._pendingOrder;
-      if (!order) return;
-
-      const transactionId = response.transactionId || response.transaction_id || String(Date.now());
-      showLoading('Validation du paiement et génération du ticket…');
-
-      try {
-        // Generate unique code
-        const uniqueCode = await generateUniqueCode();
-
-        // Save to Supabase
-        const { data: ticketRecord, error } = await db.from('tickets').insert({
-          ticket_type_id: order.ticket.id,
-          ticket_type_name: order.ticket.name,
-          unique_code: uniqueCode,
-          buyer_name: order.fullName,
-          buyer_email: order.email,
-          buyer_phone: order.phone,
-          quantity: order.qty,
-          unit_price: order.ticket.price,
-          total_amount: order.amount,
-          payment_transaction_id: transactionId,
-          payment_status: 'completed',
-          pdf_generated: true
-        }).select().single();
-
-        if (error) throw error;
-
-        hideLoading();
-        closeModal('bookingModal');
-
-        // Store for download
-        lastTicketData = {
-          ...order,
-          uniqueCode,
-          transactionId,
-          record: ticketRecord
-        };
-
-        // Show success
-        document.getElementById('successCode').textContent = uniqueCode;
-        document.getElementById('successEmail').textContent = order.email;
-        document.getElementById('successModal').classList.add('active');
-        document.body.style.overflow = 'hidden';
-
-        // Auto generate PDF
-        await generateTicketPDF(lastTicketData);
-
-      } catch (err) {
-        console.error('Error processing ticket:', err);
-        hideLoading();
-        
-        // Still generate PDF with transaction ID as fallback
-        const fallbackCode = generateLocalCode();
-        lastTicketData = { ...order, uniqueCode: fallbackCode, transactionId };
-        
-        document.getElementById('successCode').textContent = fallbackCode;
-        document.getElementById('successEmail').textContent = order.email;
-        document.getElementById('successModal').classList.add('active');
-        
-        await generateTicketPDF(lastTicketData);
-        showToast('Paiement validé ! Ticket généré en mode hors ligne.', 'success');
-      }
-    }
-
-    function handlePaymentFailed(response) {
-      console.error('Payment failed:', response);
-      showToast('Le paiement a échoué. Veuillez réessayer.', 'error');
-    }
-
-    // ═══════════════════════════════════════════
-    // UNIQUE CODE GENERATION
-    // ═══════════════════════════════════════════
-    function generateLocalCode() {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      let c = 'LACV-';
-      for (let i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
-      c += '-';
-      for (let i = 0; i < 4; i++) c += chars[Math.floor(Math.random() * chars.length)];
-      return c;
-    }
-
-    async function generateUniqueCode() {
-      let code, exists = true, attempts = 0;
-      while (exists && attempts < 10) {
-        code = generateLocalCode();
+      const tx = resp.transaction;
+      if (tx && tx.status === 'approved') {
+        showProcessing('Génération des tickets…', 'Veuillez patienter, cela prend quelques secondes');
         try {
-          const { data } = await db.from('tickets').select('id').eq('unique_code', code).maybeSingle();
-          exists = !!data;
-        } catch {
-          exists = false;
-        }
-        attempts++;
-      }
-      return code;
-    }
-
-    // ═══════════════════════════════════════════
-    // PDF GENERATION
-    // ═══════════════════════════════════════════
-    async function generateTicketPDF(data) {
-      const { jsPDF } = window.jspdf;
-      
-      return new Promise((resolve) => {
-        // First, generate QR code
-        const qrContainer = document.getElementById('qrContainer');
-        qrContainer.innerHTML = '';
-        
-        let qrDataUrl = null;
-        
-        try {
-          const qr = new QRCode(qrContainer, {
-            text: `LACV:${data.uniqueCode}:${data.email}`,
-            width: 200, height: 200,
-            colorDark: '#000000', colorLight: '#FFFFFF',
-            correctLevel: QRCode.CorrectLevel.H
+          await finalizeOrder({
+            prenom, nom, email, tel,
+            fedapayTxId:  String(tx.id),
+            fedapayRef:   tx.reference,
+            total,
           });
-          
-          setTimeout(() => {
-            const canvas = qrContainer.querySelector('canvas');
-            if (canvas) qrDataUrl = canvas.toDataURL('image/png');
-            createPDF(data, qrDataUrl, jsPDF, resolve);
-          }, 300);
-        } catch(e) {
-          createPDF(data, null, jsPDF, resolve);
+        } catch (err) {
+          console.error('[BMT] Order error:', err);
+          hideProcessing();
+          toast('Paiement reçu, mais erreur lors de la création du ticket. Contactez le support.', 'error', 10000);
         }
-      });
-    }
-
-    function createPDF(data, qrDataUrl, jsPDF, resolve) {
-      // Ticket dimensions: 210 x 99mm (DL envelope size — classic ticket feel)
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: [210, 99]
-      });
-
-      const W = 210, H = 99;
-      
-      // Background
-      doc.setFillColor(6, 6, 6);
-      doc.rect(0, 0, W, H, 'F');
-
-      // Gold border
-      doc.setDrawColor(201, 168, 76);
-      doc.setLineWidth(0.5);
-      doc.rect(3, 3, W-6, H-6);
-      doc.setLineWidth(0.2);
-      doc.rect(4.5, 4.5, W-9, H-9);
-
-      // Left section (main info) — 0 to 145mm
-      // Right section (stub) — 155 to 210mm
-
-      // Vertical dashed divider
-      doc.setDrawColor(201, 168, 76);
-      doc.setLineWidth(0.3);
-      doc.setLineDashPattern([2, 2], 0);
-      doc.line(152, 3, 152, H-3);
-      doc.setLineDashPattern([], 0);
-
-      // Notch circles
-      doc.setFillColor(6, 6, 6);
-      doc.setDrawColor(201, 168, 76);
-      doc.setLineWidth(0.3);
-      doc.circle(152, 10, 4, 'FD');
-      doc.circle(152, H-10, 4, 'FD');
-
-      // ── LEFT SIDE ──
-
-      // Event badge/tag
-      doc.setFillColor(201, 168, 76);
-      doc.setDrawColor(201, 168, 76);
-      doc.rect(8, 8, 40, 6, 'F');
-      doc.setTextColor(0, 0, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(5.5);
-      doc.text('BILLET OFFICIEL', 10, 12.5);
-
-      // Event name
-      doc.setTextColor(240, 203, 106);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(20);
-      doc.text('LEADERS AFRO', 8, 28);
-      doc.setFontSize(20);
-      doc.text('CHILL VILLAGE', 8, 38);
-
-      // Decorative line
-      doc.setDrawColor(201, 168, 76);
-      doc.setLineWidth(0.4);
-      doc.line(8, 42, 140, 42);
-
-      // Details row
-      doc.setTextColor(180, 140, 60);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.text('DATE', 8, 49);
-      doc.text('LIEU', 55, 49);
-      doc.text('CATÉGORIE', 100, 49);
-
-      doc.setTextColor(245, 237, 214);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.text(EVENT_DATE_DISPLAY, 8, 55.5);
-      doc.text(EVENT_VENUE, 55, 55.5);
-      doc.text(data.ticket.name, 100, 55.5);
-
-      // Buyer info
-      doc.setTextColor(180, 140, 60);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(6);
-      doc.text('TITULAIRE', 8, 65);
-      doc.text('EMAIL', 8, 73);
-      doc.text('TÉL', 8, 81);
-
-      doc.setTextColor(245, 237, 214);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8);
-      doc.text(data.fullName.toUpperCase(), 30, 65.5);
-      doc.setFontSize(7);
-      doc.text(data.email, 30, 73.5);
-      doc.text(data.phone, 30, 81.5);
-
-      // Code section
-      doc.setDrawColor(201, 168, 76);
-      doc.setLineWidth(0.3);
-      doc.rect(8, 87, 135, 7);
-      doc.setTextColor(180, 140, 60);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(5.5);
-      doc.text('CODE UNIQUE :', 10, 91.5);
-      doc.setTextColor(240, 203, 106);
-      doc.setFont('courier', 'bold');
-      doc.setFontSize(11);
-      doc.text(data.uniqueCode, 45, 92.5);
-
-      // Transaction ID
-      doc.setTextColor(100, 80, 30);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(5);
-      doc.text(`TXN: ${data.transactionId}`, 8, 97);
-
-      // ── RIGHT SIDE (STUB) ──
-      const sx = 157; // stub x start
-
-      // Ticket type big
-      doc.setTextColor(240, 203, 106);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(14);
-      doc.text(data.ticket.name, sx, 22, { align: 'center' });
-
-      // Price
-      doc.setTextColor(245, 237, 214);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(9);
-      doc.text(`${data.ticket.price.toLocaleString('fr-FR')} FCFA`, sx, 32, { align: 'center' });
-
-      // QR code
-      if (qrDataUrl) {
-        doc.addImage(qrDataUrl, 'PNG', sx - 16, 36, 32, 32);
       } else {
-        // Fallback: draw a box
-        doc.setDrawColor(201, 168, 76);
-        doc.setLineWidth(0.4);
-        doc.rect(sx - 16, 36, 32, 32);
-        doc.setTextColor(180, 140, 60);
-        doc.setFont('helvetica', 'normal');
-        doc.setFontSize(5);
-        doc.text('QR CODE', sx, 53.5, { align: 'center' });
+        toast('Paiement non abouti. Réessayez.', 'error');
       }
+    },
+  });
+}
 
-      // Short code under QR
-      doc.setTextColor(180, 140, 60);
-      doc.setFont('courier', 'bold');
-      doc.setFontSize(7.5);
-      doc.text(data.uniqueCode, sx, 73, { align: 'center' });
+// ══════════════════════════════════════════════════
+//  📝  CREATE ORDER + TICKETS
+// ══════════════════════════════════════════════════
+async function finalizeOrder({ prenom, nom, email, tel, fedapayTxId, fedapayRef, total }) {
+  const holderName = `${prenom} ${nom}`;
+  const totalQty   = Object.values(cart).reduce((s, q) => s + q, 0);
 
-      // "À PRÉSENTER À L'ENTRÉE"
-      doc.setTextColor(100, 80, 30);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(5);
-      doc.text('À PRÉSENTER À L\'ENTRÉE', sx, 82, { align: 'center' });
+  // Amounts
+  let merchantAmt = cartSubtotal;
+  let adminFeeAmt = 0;
+  let feeAmt      = 0;
+  if (feeConfig && +feeConfig.fee_amount > 0) {
+    feeAmt     = +feeConfig.fee_amount;
+    adminFeeAmt = feeAmt;
+    merchantAmt = feeConfig.admin_keeps_fee ? cartSubtotal : cartSubtotal - feeAmt;
+  }
 
-      // Quantity badge
-      doc.setFillColor(201, 168, 76);
-      doc.rect(sx - 12, 85, 24, 8, 'F');
-      doc.setTextColor(0, 0, 0);
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(6.5);
-      doc.text(`× ${data.qty} PLACE${data.qty > 1 ? 'S' : ''}`, sx, 90.5, { align: 'center' });
+  const firstTtId = Object.keys(cart)[0];
+  const orderRef  = `ORD-${Date.now()}-${rndStr(6)}`;
 
-      // Save
-      const fileName = `TICKET_LACV_${data.uniqueCode.replace(/-/g, '_')}.pdf`;
-      doc.save(fileName);
-      if (resolve) resolve();
-    }
+  // 1. Create order
+  const { data: order, error: oe } = await db.from('orders').insert({
+    order_reference:         orderRef,
+    ticket_type_id:          firstTtId,
+    event_id:                selectedEvent.id,
+    merchant_id:             merchantData.id,
+    customer_name:           holderName,
+    customer_email:          email,
+    customer_phone:          tel || null,
+    quantity:                totalQty,
+    unit_price:              totalQty > 0 ? cartSubtotal / totalQty : cartSubtotal,
+    subtotal:                cartSubtotal,
+    service_fee_amount:      feeAmt,
+    total_amount:            total,
+    merchant_amount:         merchantAmt,
+    admin_fee_amount:        adminFeeAmt,
+    currency:                'XOF',
+    status:                  'completed',
+    fedapay_transaction_id:  fedapayTxId,
+    fedapay_transaction_ref: fedapayRef,
+    payout_status:           'pending',
+    fee_snapshot:            feeConfig || {},
+  }).select('id, order_reference').single();
 
-    function downloadCurrentTicket() {
-      if (lastTicketData) {
-        generateTicketPDF(lastTicketData);
+  if (oe) throw new Error('Erreur création commande: ' + oe.message);
+  lastOrderRef = order.order_reference;
+
+  // 2. Create individual tickets
+  createdTickets = [];
+  for (const [ttId, qty] of Object.entries(cart)) {
+    const tt = ticketTypes.find(x => x.id === ttId);
+    for (let i = 0; i < qty; i++) {
+      let ticketNum;
+      try {
+        const { data } = await db.rpc('generate_ticket_number', { event_id: selectedEvent.id });
+        ticketNum = data;
+      } catch {
+        ticketNum = `TKT-${rndStr(8).toUpperCase()}`;
       }
-    }
+      const qrData  = JSON.stringify({ t: ticketNum, e: selectedEvent.id.slice(0,8), o: order.id.slice(0,8) });
+      const qrHash  = await sha256(ticketNum + '|' + orderRef);
 
-    // ═══════════════════════════════════════════
-    // UI HELPERS
-    // ═══════════════════════════════════════════
-    function showLoading(text) {
-      document.getElementById('loadingText').textContent = text || 'Chargement…';
-      document.getElementById('loadingOverlay').classList.add('active');
-    }
+      const { data: tkt, error: te } = await db.from('tickets').insert({
+        order_id:       order.id,
+        ticket_type_id: ttId,
+        event_id:       selectedEvent.id,
+        merchant_id:    merchantData.id,
+        ticket_number:  ticketNum,
+        qr_code_data:   qrData,
+        qr_code_hash:   qrHash,
+        holder_name:    holderName,
+        holder_email:   email,
+        holder_phone:   tel || null,
+        status:         'valid',
+      }).select('id, ticket_number, qr_code_data, qr_code_hash').single();
 
-    function hideLoading() {
-      document.getElementById('loadingOverlay').classList.remove('active');
+      if (!te && tkt) createdTickets.push({ ...tkt, ticket_type: tt });
     }
+  }
 
-    function showToast(message, type = 'info') {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      toast.textContent = message;
-      container.appendChild(toast);
-      requestAnimationFrame(() => {
-        setTimeout(() => toast.classList.add('show'), 10);
+  // 3. Increment sold count
+  for (const [ttId, qty] of Object.entries(cart)) {
+    try { await db.rpc('increment_ticket_sold', { p_ticket_type_id: ttId, p_quantity: qty }); } catch {}
+  }
+
+  // 4. Log transaction
+  try {
+    await db.from('transactions').insert({
+      order_id:          order.id,
+      type:              'payment',
+      fedapay_id:        fedapayTxId,
+      fedapay_reference: fedapayRef,
+      fedapay_status:    'approved',
+      amount:            total,
+      currency:          'XOF',
+      from_account:      'customer',
+      to_account:        'admin_fedapay',
+      status:            'completed',
+    });
+  } catch {}
+
+  hideProcessing();
+  showSuccess(email);
+}
+
+// ══════════════════════════════════════════════════
+//  🎉  SUCCESS
+// ══════════════════════════════════════════════════
+function showSuccess(email) {
+  qs('#order-ref-disp').textContent = lastOrderRef || '—';
+  qs('#email-sent').textContent     = email;
+
+  qs('#dl-list').innerHTML = createdTickets.map((tkt, idx) => `
+    <div class="dl-item">
+      <div class="dl-info">
+        <div class="dl-tname">🎟 ${e(tkt.ticket_type?.name || 'Ticket')}</div>
+        <div class="dl-tnum">${tkt.ticket_number}</div>
+      </div>
+      <button class="btn-dl" id="dl-btn-${idx}" onclick="downloadPDF(${idx})">
+        ⬇ Télécharger PDF
+      </button>
+    </div>`).join('');
+
+  showSection('success');
+  setStep(4);
+  qs('#cart-bar').classList.remove('show');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  confetti();
+}
+
+// ══════════════════════════════════════════════════
+//  📄  PDF GENERATION
+// ══════════════════════════════════════════════════
+async function downloadPDF(idx) {
+  const tkt = createdTickets[idx];
+  if (!tkt) return;
+
+  const btn = qs(`#dl-btn-${idx}`);
+  if (btn) { btn.classList.add('loading'); btn.textContent = '⏳ Génération…'; }
+  showProcessing('Création du PDF…', `Ticket ${tkt.ticket_number}`);
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc   = new jsPDF({ orientation:'portrait', unit:'mm', format:'a5' });
+    const W     = doc.internal.pageSize.getWidth();  // 148mm
+    const H     = doc.internal.pageSize.getHeight(); // 210mm
+    const pc    = pageData.primary_color   || '#13005e';
+    const sc    = pageData.secondary_color || '#7c3aed';
+    const [pr, pg, pb] = hexRgb(pc);
+    const [sr, sg, sb] = hexRgb(sc);
+    const merchantName  = pageData.page_title || merchantData.business_name;
+    const ev   = selectedEvent;
+    const date = ev.event_date ? new Date(ev.event_date) : null;
+
+    // ─ 1. Header band
+    doc.setFillColor(pr, pg, pb);
+    doc.rect(0, 0, W, 48, 'F');
+
+    // Gradient-like secondary strip
+    doc.setFillColor(sr, sg, sb);
+    doc.rect(0, 38, W, 12, 'F');
+
+    // Merchant name
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(17);
+    doc.text(truncate(merchantName, 30), W / 2, 16, { align:'center' });
+
+    // Event name
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(truncate(ev.name, 48), W / 2, 26, { align:'center', maxWidth: W - 16 });
+
+    // "BILLET OFFICIEL" on secondary band
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.setLetterSpacing(1.5);
+    doc.text('BILLET OFFICIEL · BUYMYTICKET', W / 2, 46, { align:'center' });
+    doc.setLetterSpacing(0);
+
+    // ─ 2. Event details block
+    let y = 56;
+    doc.setFillColor(247, 244, 240);
+    doc.roundedRect(8, y, W - 16, 44, 3, 3, 'F');
+
+    doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.setTextColor(pr, pg, pb);
+    doc.text('DÉTAILS', 14, y + 8);
+
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.setTextColor(20, 10, 5);
+    doc.text(truncate(ev.name, 34), 14, y + 17, { maxWidth: W - 28 });
+
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.setTextColor(90, 70, 55);
+    let dy = y + 26;
+    if (date) { doc.text(`📅  ${fmtDateLong(date)}`, 14, dy); dy += 7; }
+    if (ev.event_location) { doc.text(`📍  ${truncate(ev.event_location, 38)}`, 14, dy); }
+
+    y += 52;
+
+    // ─ 3. Holder block
+    doc.setFillColor(240, 237, 255);
+    doc.roundedRect(8, y, W - 16, 30, 3, 3, 'F');
+
+    doc.setFontSize(7); doc.setFont('helvetica','bold');
+    doc.setTextColor(sr, sg, sb);
+    doc.text('TITULAIRE', 14, y + 8);
+
+    doc.setFontSize(13); doc.setFont('helvetica','bold');
+    doc.setTextColor(20, 0, 70);
+    doc.text(truncate(tkt.holder_name, 28), 14, y + 18);
+
+    doc.setFontSize(9); doc.setFont('helvetica','normal');
+    doc.setTextColor(80, 65, 110);
+    doc.text(truncate(tkt.holder_email, 40), 14, y + 26);
+
+    y += 38;
+
+    // ─ 4. Ticket type + price chips
+    const colW = (W - 24) / 2;
+    doc.setFillColor(pr, pg, pb);
+    doc.roundedRect(8, y, colW, 22, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('TYPE DE BILLET', 14, y + 8);
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    doc.text(truncate(tkt.ticket_type?.name || 'Ticket', 18), 14, y + 17);
+
+    const rx = 8 + colW + 8;
+    doc.setFillColor(sr, sg, sb);
+    doc.roundedRect(rx, y, colW, 22, 3, 3, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('PRIX PAYÉ', rx + 5, y + 8);
+    doc.setFontSize(10); doc.setFont('helvetica','bold');
+    const price = tkt.ticket_type?.price ? `${fmt(tkt.ticket_type.price)} XOF` : 'GRATUIT';
+    doc.text(price, rx + 5, y + 17);
+
+    y += 30;
+
+    // ─ 5. Perforation line
+    doc.setDrawColor(pr, pg, pb);
+    doc.setLineWidth(0.3);
+    doc.setLineDashPattern([2, 3], 0);
+    doc.line(12, y, W - 12, y);
+    doc.setLineDashPattern([], 0);
+    // Holes
+    doc.setFillColor(pr, pg, pb);
+    doc.circle(4, y, 4, 'F');
+    doc.circle(W - 4, y, 4, 'F');
+
+    y += 10;
+
+    // ─ 6. QR Code section
+    doc.setFontSize(8); doc.setFont('helvetica','normal');
+    doc.setTextColor(120, 100, 85);
+    doc.text('Scannez ce QR Code à l\'entrée', W / 2, y, { align:'center' });
+    y += 5;
+
+    // Generate QR & embed
+    let qrY = y;
+    const qrSize = 55;
+    const qrX   = (W - qrSize) / 2;
+
+    try {
+      const qrUrl = await generateQR(tkt.qr_code_data);
+      doc.addImage(qrUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+    } catch {}
+
+    // Border around QR
+    doc.setDrawColor(pr, pg, pb);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(qrX - 2, qrY - 2, qrSize + 4, qrSize + 4, 2, 2);
+
+    y = qrY + qrSize + 8;
+
+    // ─ 7. Ticket number & hash
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.setTextColor(130, 110, 90);
+    doc.text('NUMÉRO DE BILLET', W / 2, y, { align:'center' });
+    y += 5;
+
+    doc.setFontSize(12); doc.setFont('courier','bold');
+    doc.setTextColor(pr, pg, pb);
+    doc.text(tkt.ticket_number, W / 2, y, { align:'center' });
+    y += 7;
+
+    doc.setFontSize(7); doc.setFont('courier','normal');
+    doc.setTextColor(170, 155, 140);
+    const shortHash = (tkt.qr_code_hash || '').slice(0, 24);
+    doc.text(`Code de vérification: ${shortHash}…`, W / 2, y, { align:'center' });
+
+    // ─ 8. Footer
+    doc.setFillColor(pr, pg, pb);
+    doc.rect(0, H - 12, W, 12, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.text(`BuyMyTicket · ${BASE_URL} · Ticket authentique — Ne pas reproduire`, W / 2, H - 4.5, { align:'center' });
+
+    doc.save(`ticket-${tkt.ticket_number}.pdf`);
+    toast('✓ Ticket téléchargé !', 'success');
+
+  } catch (err) {
+    console.error('[BMT PDF]', err);
+    toast('Erreur lors de la génération du PDF. Réessayez.', 'error');
+  } finally {
+    if (btn) { btn.classList.remove('loading'); btn.innerHTML = '⬇ Télécharger PDF'; }
+    hideProcessing();
+  }
+}
+
+// ══════════════════════════════════════════════════
+//  📱  QR CODE (loads qrcodejs on demand)
+// ══════════════════════════════════════════════════
+async function generateQR(data) {
+  return new Promise((resolve, reject) => {
+    function render() {
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'position:fixed;left:-9999px;top:-9999px;width:256px;height:256px;';
+      document.body.appendChild(wrap);
+
+      new QRCode(wrap, {
+        text:           data,
+        width:          256,
+        height:         256,
+        colorDark:      '#000000',
+        colorLight:     '#ffffff',
+        correctLevel:   QRCode.CorrectLevel.H,
       });
+
+      // QRCode.js renders via setTimeout
       setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 400);
-      }, 4000);
+        const cvs = wrap.querySelector('canvas');
+        const img = wrap.querySelector('img');
+        document.body.removeChild(wrap);
+
+        if (cvs) return resolve(cvs.toDataURL('image/png'));
+        if (img && img.src) return resolve(img.src);
+        reject(new Error('QR render failed'));
+      }, 400);
     }
 
-    // Close modal on backdrop click
-    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
-      backdrop.addEventListener('click', (e) => {
-        if (e.target === backdrop) {
-          backdrop.classList.remove('active');
-          document.body.style.overflow = '';
-        }
-      });
-    });
+    if (typeof QRCode !== 'undefined') {
+      render();
+    } else {
+      injectScript(
+        'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js',
+        render,
+        () => reject(new Error('QRCode script failed to load'))
+      );
+    }
+  });
+}
 
-    // Close on Escape
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-backdrop.active').forEach(m => {
-          m.classList.remove('active');
-          document.body.style.overflow = '';
-        });
-      }
-    });
-  </script>
+// ══════════════════════════════════════════════════
+//  🎊  CONFETTI
+// ══════════════════════════════════════════════════
+function confetti() {
+  const colors = [
+    pageData.primary_color || '#13005e',
+    pageData.secondary_color || '#7c3aed',
+    '#f59e0b', '#10b981', '#ec4899', '#0ea5e9',
+  ];
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:9998;overflow:hidden;';
+  document.body.appendChild(wrap);
+
+  if (!document.getElementById('confetti-css')) {
+    const s = document.createElement('style');
+    s.id = 'confetti-css';
+    s.textContent = '@keyframes cf{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(110vh) rotate(720deg)}}';
+    document.head.appendChild(s);
+  }
+
+  for (let i = 0; i < 90; i++) {
+    const p   = document.createElement('div');
+    const sz  = 5 + Math.random() * 9;
+    const clr = colors[Math.floor(Math.random() * colors.length)];
+    p.style.cssText = `
+      position:absolute; left:${Math.random()*100}%; top:-20px;
+      width:${sz}px; height:${sz*(0.3+Math.random()*0.7)}px;
+      background:${clr}; border-radius:${Math.random()>.5?'50%':'2px'};
+      animation:cf ${2+Math.random()*2.5}s ${Math.random()*1.6}s linear forwards;
+    `;
+    wrap.appendChild(p);
+  }
+  setTimeout(() => wrap.remove(), 7000);
+}
+
+// ══════════════════════════════════════════════════
+//  🗺  NAVIGATION
+// ══════════════════════════════════════════════════
+function showSection(name) {
+  const secs = { events:'events-section', tickets:'tickets-section', checkout:'checkout-section', success:'success-section' };
+  Object.entries(secs).forEach(([k, id]) => {
+    const el = document.getElementById(id);
+    el.style.display = (k === name) ? 'block' : 'none';
+  });
+}
+
+function setStep(n) {
+  [1,2,3,4].forEach(i => {
+    const el = qs('#step-'+i);
+    const sn = qs('#sn-'+i);
+    el.classList.remove('active','done');
+    if (i < n)  { el.classList.add('done');   sn.textContent = '✓'; }
+    if (i === n){ el.classList.add('active');  sn.textContent = i; }
+    if (i > n)  {                              sn.textContent = i; }
+  });
+}
+
+function navBack(to) {
+  if (to === 'events') {
+    showSection('events');
+    setStep(1);
+    qs('#cart-bar').classList.remove('show');
+    selectedEvent = null; cart = {};
+  } else if (to === 'tickets') {
+    showSection('tickets');
+    setStep(2);
+    updateCartBar();
+  }
+  window.scrollTo({ top:0, behavior:'smooth' });
+}
+
+// ══════════════════════════════════════════════════
+//  🔧  UI HELPERS
+// ══════════════════════════════════════════════════
+function showError(msg) {
+  qs('#error-msg').textContent = msg;
+  qs('#error-screen').classList.add('show');
+  hideLoading();
+}
+function hideLoading() {
+  qs('#loading').classList.add('out');
+  qs('#app').style.display = 'block';
+}
+function showProcessing(title, sub) {
+  qs('#proc-title').textContent = title || '';
+  qs('#proc-sub').textContent   = sub   || '';
+  qs('#processing').classList.add('show');
+}
+function hideProcessing() {
+  qs('#processing').classList.remove('show');
+}
+
+function toast(msg, type = 'info', dur = 3500) {
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  qs('#toasts').appendChild(el);
+  setTimeout(() => el.remove(), dur);
+}
+
+// ══════════════════════════════════════════════════
+//  🔢  UTILS
+// ══════════════════════════════════════════════════
+const qs    = s => document.querySelector(s);
+const fmt   = n  => Number(n || 0).toLocaleString('fr-FR');
+const e     = s  => (s || '').toString()
+  .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+const rndStr = n => Math.random().toString(36).slice(2, 2+n).toUpperCase().padEnd(n,'X');
+const truncate = (s, n) => (s||'').length > n ? (s||'').slice(0,n)+'…' : (s||'');
+
+function fmtDateLong(d) {
+  return d.toLocaleDateString('fr-FR', {
+    weekday:'short', day:'2-digit', month:'long', year:'numeric',
+    hour:'2-digit', minute:'2-digit',
+  });
+}
+
+function hexRgb(hex) {
+  const n = parseInt(hex.replace('#',''), 16);
+  return [(n>>16)&255, (n>>8)&255, n&255];
+}
+
+function parsePerkList(perks) {
+  if (!perks) return [];
+  if (Array.isArray(perks)) return perks;
+  try { return JSON.parse(perks); } catch { return []; }
+}
+
+async function sha256(text) {
+  const buf  = new TextEncoder().encode(text);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash))
+    .map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function injectScript(src, onload, onerror) {
+  const s = document.createElement('script');
+  s.src = src;
+  if (onload)  s.onload  = onload;
+  if (onerror) s.onerror = onerror;
+  document.head.appendChild(s);
+}
+function injectLink(href) {
+  const l = document.createElement('link');
+  l.rel = 'stylesheet'; l.href = href;
+  document.head.appendChild(l);
+}
+
+// ══════════════════════════════════════════════════
+//  🏁  BOOT
+// ══════════════════════════════════════════════════
+init();
+</script>
 </body>
 </html>
