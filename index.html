@@ -1009,8 +1009,14 @@ async function loadPage(slug) {
     .eq('is_published', true)
     .single();
 
+  // DEBUG — à retirer après correction
+  console.warn('[BMT DEBUG] slug cherché:', slug);
+  console.warn('[BMT DEBUG] error Supabase:', JSON.stringify(error));
+  console.warn('[BMT DEBUG] data retourné:', JSON.stringify(data));
+
   if (error || !data) {
-    throw new Error('Page de billetterie introuvable ou désactivée.');
+    const msg = error?.message || error?.code || 'Requête vide';
+    throw new Error('Page introuvable — Détail: ' + msg);
   }
   if (!data.merchants || !data.merchants.is_active) {
     throw new Error('Ce compte marchand est actuellement inactif.');
@@ -1425,51 +1431,76 @@ function startPayment() {
   const total    = getTotal();
   const totalQty = Object.values(cart).reduce((s, q) => s + q, 0);
 
-  // Disable pay button to prevent double click
-  qs('#btn-pay').disabled = true;
+  const btn = qs('#btn-pay');
+  const reEnableBtn = () => { btn.disabled = false; btn.textContent = '🔒 Payer maintenant'; };
 
-  FedaPay.init({
-    public_key: fedapayKey,
-    transaction: {
-      amount: Math.round(total),
-      description: `${totalQty} ticket${totalQty > 1 ? 's' : ''} — ${selectedEvent.name}`,
-      custom_metadata: {
-        event_id:    selectedEvent.id,
-        merchant_id: merchantData.id,
-        slug:        pageData.slug,
+  // Guards
+  if (!total || total <= 0) {
+    toast('Montant invalide. Vérifiez vos tickets.', 'error'); return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Ouverture…';
+
+  // Debug console
+  console.log('[BMT FedaPay] key:', fedapayKey);
+  console.log('[BMT FedaPay] total:', total, 'qty:', totalQty);
+  console.log('[BMT FedaPay] FedaPay typeof:', typeof FedaPay);
+
+  try {
+    const widget = FedaPay.init({
+      public_key: fedapayKey,
+      transaction: {
+        amount: Math.round(total),
+        description: `${totalQty} ticket${totalQty > 1 ? 's' : ''} — ${selectedEvent.name}`,
+        custom_metadata: {
+          event_id:    selectedEvent.id,
+          merchant_id: merchantData.id,
+          slug:        pageData.slug,
+        },
       },
-    },
-    customer: {
-      firstname: prenom,
-      lastname:  nom,
-      email:     email,
-      ...(tel ? { phone_number: { number: tel.replace(/\s/g, ''), country: 'bj' } } : {}),
-    },
-    onComplete: async function(resp) {
-      qs('#btn-pay').disabled = false;
-      if (resp.reason === FedaPay.DIALOG_DISMISSED) {
-        toast('Paiement annulé', 'info'); return;
-      }
-      const tx = resp.transaction;
-      if (tx && tx.status === 'approved') {
-        showProcessing('Génération des tickets…', 'Veuillez patienter, cela prend quelques secondes');
-        try {
-          await finalizeOrder({
-            prenom, nom, email, tel,
-            fedapayTxId:  String(tx.id),
-            fedapayRef:   tx.reference,
-            total,
-          });
-        } catch (err) {
-          console.error('[BMT] Order error:', err);
-          hideProcessing();
-          toast('Paiement reçu, mais erreur lors de la création du ticket. Contactez le support.', 'error', 10000);
+      customer: {
+        firstname: prenom,
+        lastname:  nom,
+        email:     email,
+        ...(tel ? { phone_number: { number: tel.replace(/\s/g, ''), country: 'bj' } } : {}),
+      },
+      onComplete: async function(resp) {
+        reEnableBtn();
+        if (resp.reason === FedaPay.DIALOG_DISMISSED) {
+          toast('Paiement annulé', 'info'); return;
         }
-      } else {
-        toast('Paiement non abouti. Réessayez.', 'error');
-      }
-    },
-  });
+        const tx = resp.transaction;
+        if (tx && tx.status === 'approved') {
+          showProcessing('Génération des tickets…', 'Veuillez patienter, cela prend quelques secondes');
+          try {
+            await finalizeOrder({
+              prenom, nom, email, tel,
+              fedapayTxId:  String(tx.id),
+              fedapayRef:   tx.reference,
+              total,
+            });
+          } catch (err) {
+            console.error('[BMT] Order error:', err);
+            hideProcessing();
+            toast('Paiement reçu, mais erreur lors de la création du ticket. Contactez le support.', 'error', 10000);
+            return;
+          }
+          // Payout automatique MoMo du marchand (non bloquant)
+          triggerPayout(String(tx.id), total).catch(e =>
+            console.warn('[BMT] Payout non critique:', e)
+          );
+        } else {
+          toast('Paiement non abouti. Réessayez.', 'error');
+        }
+      },
+    });
+    widget.open();
+  } catch(err) {
+    console.error('[BMT FedaPay] Erreur init:', err);
+    toast('Erreur FedaPay : ' + (err.message || err), 'error', 7000);
+    reEnableBtn();
+  }
 }
 
 // ══════════════════════════════════════════════════
@@ -1973,6 +2004,47 @@ function injectLink(href) {
   const l = document.createElement('link');
   l.rel = 'stylesheet'; l.href = href;
   document.head.appendChild(l);
+}
+
+// ══════════════════════════════════════════════════
+//  💸  PAYOUT AUTO (Edge Function)
+// ══════════════════════════════════════════════════
+async function triggerPayout(fedapayTxId, totalAmount) {
+  if (!lastOrderRef) return;
+
+  // Récupérer l'id de la commande depuis la référence
+  const { data: order } = await db
+    .from('orders')
+    .select('id')
+    .eq('order_reference', lastOrderRef)
+    .single();
+
+  if (!order) { console.warn('[PAYOUT] Commande introuvable'); return; }
+
+  const EDGE_URL = SUPABASE_URL + '/functions/v1/dynamic-api';
+
+  const res = await fetch(EDGE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+    },
+    body: JSON.stringify({
+      order_id:               order.id,
+      fedapay_transaction_id: fedapayTxId,
+      merchant_id:            merchantData.id,
+      total_amount:           totalAmount,
+    }),
+  });
+
+  const result = await res.json();
+  console.log('[PAYOUT] Résultat:', result);
+
+  if (result.success) {
+    console.log(`[PAYOUT] ✓ ${result.merchant_amount} XOF envoyé au marchand | Frais plateforme: ${result.platform_fee} XOF`);
+  } else {
+    console.warn('[PAYOUT] Échec payout:', result.error);
+  }
 }
 
 // ══════════════════════════════════════════════════
